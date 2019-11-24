@@ -24,13 +24,13 @@ int main(int argc , char* argv[])
     }
 
 
-    // 创建解释器
+    /* 创建解释器 */
     interpreter = CRB_create_interpreter();
-    // 编译
+    /* 编译 */
     CRB_compile(interpreter, fp);
-    // 解释
+    /* 解释 */
     CRB_interpreter(interpreter);
-    // 释放解释器
+    /* 释放解释器 */
     CRB_dispose_interpreter(interpreter);
 
     MEM_dump_blocks(stdout);

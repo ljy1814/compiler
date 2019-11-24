@@ -19,9 +19,9 @@ void crb_open_string_literal(void)
     st_string_literal_buffer_size = 0;
 }
 
-void crB_add_string_literal(int letter)
+void crb_add_string_literal(int letter)
 {
-    // 重新分配
+    /* 重新分配 */
     if (st_string_literal_buffer_size == st_string_literal_buffer_alloc_size) {
         st_string_literal_buffer_alloc_size += STRING_ALLOC_SIZE;
         st_string_literal_buffer = MEM_realloc(st_string_literal_buffer, st_string_literal_buffer_alloc_size);

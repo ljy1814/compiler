@@ -8,7 +8,7 @@
 #include <assert.h>
 #include "memory.h"
 
-// 打开一个存储器
+/* 打开一个存储器 */
 MEM_Storage MEM_open_storage_func(MEM_Controller controller, char *filename, int line, int page_size)
 {
     MEM_Storage storage;
@@ -26,7 +26,7 @@ MEM_Storage MEM_open_storage_func(MEM_Controller controller, char *filename, int
     return storage;
 }
 
-// 分配存储器
+/* 分配存储器 */
 void* MEM_storage_malloc_func(MEM_Controller controller, char *fn, int line, MEM_Storage storage, size_t size)
 {
     int cell_num;
@@ -35,14 +35,14 @@ void* MEM_storage_malloc_func(MEM_Controller controller, char *fn, int line, MEM
 
     cell_num = ((size - 1) / CELL_SIZE) + 1;
     if (storage->page_list != NULL && 
-            (storage->page_list->use_cell_num + cell_num < storage->page_list->cell_num)) { // enough
+            (storage->page_list->use_cell_num + cell_num < storage->page_list->cell_num)) { /* enough */
         p = &(storage->page_list->cell[storage->page_list->use_cell_num]);
         storage->page_list->use_cell_num += cell_num;
     } else {
         int alloc_cell_num;
         alloc_cell_num = larger(cell_num, storage->current_page_size);
         new_page = MEM_malloc_func(controller, fn, line, sizeof(MemoryPage) + CELL_SIZE * (alloc_cell_num - 1) );
-        new_page->next = storage->page_list; // 接到前面
+        new_page->next = storage->page_list; /* 接到前面 */
         new_page->cell_num = alloc_cell_num;
         storage->page_list = new_page;
 

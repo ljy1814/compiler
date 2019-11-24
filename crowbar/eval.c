@@ -121,17 +121,17 @@ static CRB_Value eval_assign_expression(CRB_Interpreter *inter, LocalEnvironment
     }
 
     if (left != NULL) {
-        // 处理字符串值
+        /* 处理字符串值 */
         release_if_string(&left->value);
         left->value = v;
         refer_if_string(&v);
     } else {
-        // 没找到变量 
+        /* 没找到变量  */
         if (env != NULL) {
-            // 加入局部变量
+            /* 加入局部变量 */
             crb_add_local_variable(env, identifier, &v);
         } else {
-            // 加入全局变量
+            /* 加入全局变量 */
             CRB_add_global_variable(inter, identifier, &v);
         }
         refer_if_string(&v);
@@ -184,11 +184,11 @@ static void eval_binary_int(CRB_Interpreter *inter, ExpressionType operator, int
             result->u.int_value = left * right;
             break;
         case DIV_EXPRESSION:
-            // 0
+            /* 0 */
             result->u.int_value = left / right;
             break;
         case MOD_EXPRESSION:
-            // 0
+            /* 0 */
             result->u.int_value = left % right;
             break;
         case LOGICAL_AND_EXPRESSION:
@@ -251,11 +251,11 @@ static void eval_binary_double(CRB_Interpreter *inter, ExpressionType operator, 
             result->u.double_value = left * right;
             break;
         case DIV_EXPRESSION:
-            // 0
+            /* 0 */
             result->u.double_value = left / right;
             break;
         case MOD_EXPRESSION:
-            // 0
+            /* 0 */
             result->u.double_value = fmod(left , right);
             break;
         case LOGICAL_AND_EXPRESSION:
@@ -401,7 +401,7 @@ CRB_Value crb_eval_binary_expression(CRB_Interpreter *inter, LocalEnvironment *e
         }
         result.type = CRB_STRING_VALUE;
         result.u.string_value = chain_string(inter, left_val.u.string_value, right_str);
-    } else if (CRB_STRING_VALUE == left_val.type && CRB_STRING_VALUE == right_val.type) { // string 比较
+    } else if (CRB_STRING_VALUE == left_val.type && CRB_STRING_VALUE == right_val.type) { /* string 比较 */
         result.type = CRB_BOOLEAN_VALUE;
         result.u.boolean_value = eval_compare_string(operator, &left_val, &right_val, left->line_number);
     } else if (CRB_NULL_VALUE == left_val.type && CRB_NULL_VALUE == right_val.type) {
@@ -541,7 +541,7 @@ static CRB_Value call_crowbar_function(CRB_Interpreter *inter, LocalEnvironment 
             crb_runtime_error(expr->line_number, ARGUMENT_TOO_MANY_ERR, MESSAGE_ARGUMENT_END);
         }
         arg_val = eval_expression(inter, env, arg_p->expression);
-        crb_add_local_variable(local_env, param_p->name, &arg_val); // 添加到局部变量中
+        crb_add_local_variable(local_env, param_p->name, &arg_val); /* 添加到局部变量中 */
     }
 
     if (param_p) {
@@ -607,8 +607,8 @@ static CRB_Value eval_expression(CRB_Interpreter *inter, LocalEnvironment *env, 
             break;
         case ASSIGN_EXPRESSION:
             eval_assign_expression(inter, env,
-                    expr->u.assign_expression.variable,
-                    expr->u.assign_expression.operand);
+                    expr->u.assign_expression->variable,
+                    expr->u.assign_expression->operand);
             break;
         case ADD_EXPRESSION:
         case SUB_EXPRESSION:
@@ -621,12 +621,12 @@ static CRB_Value eval_expression(CRB_Interpreter *inter, LocalEnvironment *env, 
         case GE_EXPRESSION:
         case LT_EXPRESSION:
         case LE_EXPRESSION:
-            v = crb_eval_binary_expression(inter, env, expr->type, expr->u.binary_expression.left, expr->u.binary_expression.right);
+            v = crb_eval_binary_expression(inter, env, expr->type, expr->u.binary_expression->left, expr->u.binary_expression->right);
             break;
 
         case LOGICAL_AND_EXPRESSION:
         case LOGICAL_OR_EXPRESSION:
-            v = eval_logical_and_or_expression(inter, env, expr->type, expr->u.binary_expression.left, expr->u.binary_expression.right);
+            v = eval_logical_and_or_expression(inter, env, expr->type, expr->u.binary_expression->left, expr->u.binary_expression->right);
             break;
 
         case MINUS_EXPRESSION:

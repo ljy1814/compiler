@@ -132,5 +132,45 @@ FunctionDefinition *crb_search_function(char *name)
     return pos;
 }
 
+void* crb_execute_malloc(CRB_Interpreter *inter, size_t size)
+{
+    void *p;
+    p = MEM_storage_malloc(inter->execute_storage, size);
+
+    return p;
+}
+
+void CRB_add_global_variable(CRB_Interpreter *inter, char *identifier, CRB_Value *value)
+{
+    Variable *new_variable;
+
+    new_variable = crb_execute_malloc(inter, sizeof(Variable));
+    new_variable->name = crb_execute_malloc(inter, strlen(identifier) + 1);
+    strcpy(new_variable->name, identifier);
+    new_variable->next = inter->variable;
+    new_variable->value = *value;
+}
+
+void* crb_malloc(size_t size) {
+    void *p;
+    CRB_Interpreter *inter;
+
+    inter = crb_get_current_interpreter();
+
+    p = MEM_storage_malloc(inter->interpreter_storage, size);
+
+    return p;
+}
+
+void crb_add_local_variable(LocalEnvironment *env, char *identifier, CRB_Value *value)
+{
+    Variable *new_variable;
+    new_variable = MEM_malloc(sizeof(Variable));
+    new_variable->name = identifier;
+    new_variable->value = *value;
+    new_variable->next = env->variable;
+    env->variable = new_variable;
+}
+
 /* vim: set tabstop=4 set shiftwidth=4 */
 

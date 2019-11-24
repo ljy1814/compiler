@@ -7,6 +7,16 @@
 #include <stdlib.h>
 #include <string.h>
 
+static void default_error_handler(MEM_Controller controller, char *filename, int line, char *msg);
+
+static struct MEM_Controller_tag st_default_controller = {
+    NULL, 
+    default_error_handler,
+    MEM_FAIL_AND_EXIT
+};
+
+MEM_Controller mem_default_controller = &st_default_controller;
+
 #ifdef DEBUG
 
 void check_mark_sub(unsigned char *mark, int size)
@@ -64,7 +74,7 @@ void MEM_dump_blocks_func(MEM_Controller controller, FILE *fp)
     int counter = 0;
 
     for (pos = controller->block_header; pos; pos = pos->s.next) {
-        //check_mark(pos);
+        check_mark(pos);
     }
 
 #endif
@@ -134,7 +144,7 @@ void *MEM_malloc_func(MEM_Controller controller, char *filename, int line, size_
     }
 
 #ifdef DEBUG
-    memset(pqtr, 0xcc, alloc_size);
+    memset(ptr, 0xcc, alloc_size);
     set_header(ptr, size, filename, line);
     set_tail(ptr, alloc_size);
     chain_block(controller, (Header*)ptr);
@@ -167,6 +177,93 @@ void MEM_free_func(MEM_Controller controller, void *ptr)
     free(real_ptr);
 }
 
+void* MEM_realloc_func(MEM_Controller controller, char *fn, int line, void *ptr, size_t size)
+{
+    void *new_ptr;
+    size_t alloc_size;
+    void *real_ptr;
+
+#ifdef DEBUG
+    Header old_header;
+    int old_size;
+    alloc_size = size + sizeof(Header) + MARK_SIZE;
+
+    if (NULL != ptr) {
+        real_ptr = (char *)ptr - sizeof(Header);
+        check_mark((Header*)real_ptr);
+        old_header = *((Header*)real_ptr);
+        old_size = old_header.s.size;
+        unchain_block(controller, real_ptr);
+    } else {
+        real_ptr = NULL;
+        old_size = 0;
+    }
+#else
+    alloc_size = size;
+    real_ptr = ptr;
+#endif
+
+    new_ptr = realloc(real_ptr, alloc_size);
+    if (NULL == new_ptr) {
+        if (NULL == ptr) {
+            error_handler(controller, fn, line, "realloc(malloc)");
+        } else {
+            error_handler(controller, fn, line, "realloc");
+            free(real_ptr);
+        }
+    }
+
+#ifdef DEBUG
+    if (ptr) {
+        *((Header*)new_ptr) = old_header;
+        ((Header*)new_ptr)->s.size = size;
+        rechain_block(controller, (Header*)new_ptr);
+        set_tail(new_ptr, alloc_size);
+    } else {
+        set_header(new_ptr, size, fn, line);
+        set_tail(new_ptr, alloc_size);
+        chain_block(controller, (Header*)new_ptr);
+    }
+    new_ptr = (char *)new_ptr + sizeof(Header);
+    if (size > old_size) {
+        memset((char *)new_ptr + old_size, 0xCC, size - old_size);
+    }
+#endif
+
+    return new_ptr;
+}
+
+char* MEM_strdup_func(MEM_Controller controller, char *fn, int line, char *str)
+{
+    char *ptr;
+    int size;
+    size_t alloc_size;
+
+    size = strlen(str) + 1;
+
+#ifdef DEBUG
+    alloc_size = size + sizeof(Header) + MARK_SIZE;
+#else
+    alloc_size = size;
+#endif
+
+    ptr = malloc(alloc_size);
+    if (NULL == ptr) {
+        error_handler(controller, fn, line, "strdup");
+    }
+
+#ifdef DEBUG
+    memset(ptr, 0xCC, alloc_size);
+    set_header((Header*)ptr, size, fn, line);
+    set_tail(ptr, alloc_size);
+    chain_block(controller, (Header*)ptr);
+    ptr = (char*)ptr + sizeof(Header);
+#endif
+
+    strcpy(ptr, str);
+
+    return ptr;
+}
 
 /* vim: set tabstop=4 set shiftwidth=4 */
 

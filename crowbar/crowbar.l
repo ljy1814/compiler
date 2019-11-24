@@ -1,7 +1,7 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
-#include "dbg.h"
+#include "DBG.h"
 #include "crowbar.h"
 #include "y.tab.h"
 
@@ -27,7 +27,7 @@ static void increment_line_number(void)
 <INITIAL>"elsif" return ELSIF;
 <INITIAL>"while" return WHILE;
 <INITIAL>"for" return FOR;
-<INITIAL>"return" return RETURN;
+<INITIAL>"return" return RETURN_T;
 <INITIAL>"break" return BREAK;
 <INITIAL>"continue" return CONTINUE;
 <INITIAL>"null" return NULL_T;
@@ -91,7 +91,7 @@ static void increment_line_number(void)
         sprintf(buf, "0x%02x", (unsigned char)yytext[0]);
     }
     
-    crb_compile_error(CHARACTER_INVALID_ERR, STRING_MESSAGE_ARGUMENT, "bad char", buf, MESSAGE_ARGUMENT_EN);
+    crb_compile_error(CHARACTER_INVALID_ERR, STRING_MESSAGE_ARGUMENT, "bad char", buf, MESSAGE_ARGUMENT_END);
 }
 
 <COMMENT>\n {

@@ -4,11 +4,12 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-// 调试
+/* 调试 */
 
 typedef struct DBG_Controller_tag *DBG_Controller;
 void DBG_set(DBG_Controller controller, char *file, int line);
 void DBG_set_expression(char *expr);
+
 
 #ifdef DBG_NO_DEBUG
     #define DBG_create_controller() ((void)0)
@@ -37,7 +38,7 @@ void DBG_set_expression(char *expr);
 
 typedef enum {
     DBG_TRUE = 1,
-    DBG_FALSE = 0,
+    DBG_FALSE = 0
 } DBG_Boolean;
 
 DBG_Controller DBG_create_controller_func(void);

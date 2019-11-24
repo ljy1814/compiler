@@ -14,7 +14,7 @@ static CRB_String *alloc_crb_string(CRB_Interpreter *inter, char *str, CRB_Boole
     CRB_String *ret;
 
     ret = MEM_malloc(sizeof(CRB_String));
-    // 引用计数
+    /* 引用计数 */
     ret->ref_count = 0;
     ret->is_literal = is_literal;
     ret->string = str;

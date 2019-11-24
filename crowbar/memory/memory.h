@@ -14,7 +14,7 @@ struct MEM_Controller_tag {
     Header *block_header;
 };
 
-// 整数  小数 或者 指针
+/* 整数  小数 或者 指针 */
 typedef union {
     long l_dummy;
     double d_dummy;
@@ -37,7 +37,7 @@ typedef struct MEM_Storage_tag *MEM_Storage;
 
 struct MEM_Storage_tag {
     MemoryPageList page_list;
-    int current_page_size; // 当前页
+    int current_page_size; /* 当前页 */
 };
 
 

@@ -13,7 +13,7 @@
 #define MESSAGE_ARGUMENT_MAX (256)
 #define LINE_BUF_SIZE (1024)
 
-// 数学运算
+/* 数学运算 */
 #define dkc_is_math_operator(operator) \
     ((operator) == ADD_EXPRESSION \
     || (operator) == SUB_EXPRESSION \
@@ -31,34 +31,34 @@
 
 #define dkc_is_logical_operator(operator) ((operator) == LOGICAL_AND_EXPRESSION || (operator) == LOGICAL_OR_EXPRESSION)
 
-// 编译时错误
+/* 编译时错误 */
 typedef enum {
-    PARSE_ERR = 1, // 语法分析错误
-    CHARACTER_INVALID_ERR, // 字符无效
-    FUNCTION_MULTIOPLE_DEFINE_ERR, // 函数重复定义   
+    PARSE_ERR = 1, /* 语法分析错误 */
+    CHARACTER_INVALID_ERR, /* 字符无效 */
+    FUNCTION_MULTIOPLE_DEFINE_ERR, /* 函数重复定义   */
     COMPILE_ERROR_COUNT_PLUS_1
 } CompilerError;
 
-// 运行时错误
+/* 运行时错误 */
 typedef enum {
     VARIABLE_NOT_FOUND_ERR = 1,
     FUNCTION_NOT_FOUND_ERR, 
     ARGUMENT_TOO_MANY_ERR,
     ARGUMENT_TOO_FEW_ERR,
     NOT_BOOLEAN_TYPE_ERR,
-    MINUS_OPERAND_TYPE_ERR, //负号类型错误
-    BAD_OPERAND_TYPE_ERR, // 错误操作符
-    NOT_BOOLEAN_OPERATOR_ERR, // 没有布尔操作符
+    MINUS_OPERAND_TYPE_ERR, /* 负号类型错误 */
+    BAD_OPERAND_TYPE_ERR, /* 错误操作符 */
+    NOT_BOOLEAN_OPERATOR_ERR, /* 没有布尔操作符 */
     FOPEN_ARGUMENT_TYPE_ERR,
     FCLOSE_ARGUMENT_TYPE_ERR,
     FGETS_ARGUMENT_TYPE_ERR,
     FPUTS_ARGUMENT_TYPE_ERR,
-    NOT_NULL_OPERATOR_ERR, // 没有null操作符
-    DIVISION_BY_ZERO_ERR, // 除0
+    NOT_NULL_OPERATOR_ERR, /* 没有null操作符 */
+    DIVISION_BY_ZERO_ERR, /* 除0 */
     GLOBAL_VARIABLE_NOT_FOUND_ERR,
-    GLOBAL_OPERATOR_FOR_STARING_ERR, // 全局语句在顶层结构
+    GLOBAL_STATEMENT_IN_TOPLEVEL_ERR, /* 全局语句在顶层结构 */
     BAD_OPERATOR_FOR_STRING_ERR,
-    RUNTIME_ERROR_COUNT_PLUS_1  // 计数加1
+    RUNTIME_ERROR_COUNT_PLUS_1  /* 计数加1 */
 } RuntimeError;
 
 typedef enum {
@@ -102,7 +102,7 @@ typedef enum {
     EXPRESSION_TYPE_COUNT_PLUS_1
 } ExpressionType;
 
-// 参数列表  实参
+/* 参数列表  实参 */
 typedef struct ArgumentList_tag {
     Expression *expression;
     struct ArgumentList_tag *next;
@@ -120,7 +120,7 @@ typedef struct {
 
 typedef struct {
     char *identifier;
-    ArgumentList *argument;  // 形参列表
+    ArgumentList *argument;  /* 形参列表 */
 } FunctionCallExpression;
 
 struct Expression_tag {
@@ -204,7 +204,7 @@ struct Statement_tag {
     StatementType type;
     int line_number;
     union {
-        Expression *expression_s; // 表达式语句
+        Expression *expression_s; /* 表达式语句 */
         GlobalStatement global_s;
         IfStatement if_s;
         WhileStatement while_s;
@@ -215,17 +215,17 @@ struct Statement_tag {
 
 typedef struct ParameterList_tag {
     char *name;
-    struct ParameterList_tag *next; // 下一个形参
+    struct ParameterList_tag *next; /* 下一个形参 */
 } ParameterList;
 
 typedef enum {
-    CROWBAR_FUNCTION_DEFINITION = 1, // 自定义函数
-    NATIVE_FUNCTION_DEFINITION // 内置函数
+    CROWBAR_FUNCTION_DEFINITION = 1, /* 自定义函数 */
+    NATIVE_FUNCTION_DEFINITION /* 内置函数 */
 } FunctionDefinitionType;
 
 typedef struct FunctionDefinition_tag {
-    char *name; // 函数名
-    FunctionDefinitionType type; // 类型
+    char *name; /* 函数名 */
+    FunctionDefinitionType type; /* 类型 */
     union {
         struct {
             ParameterList *parameter;
@@ -233,7 +233,7 @@ typedef struct FunctionDefinition_tag {
         } crowbar_f;
 
         struct {
-            CRB_NativeFunctionProc *proc; // 内置函数指针
+            CRB_NativeFunctionProc *proc; /* 内置函数指针 */
         } native_f;
     } u;
 
@@ -246,13 +246,13 @@ typedef struct Variable_tag {
     struct Variable_tag *next;
 } Variable;
 
-// 语句执行完成类型
+/* 语句执行完成类型 */
 typedef enum {
     NORMAL_STATEMENT_RESULT = 1,
     RETURN_STATEMENT_RESULT ,
     BREAK_STATEMENT_RESULT ,
     CONTINUE_STATEMENT_RESULT ,
-    STATEMENT_RESULT_TYPE_COUNT_PLUS_1,
+    STATEMENT_RESULT_TYPE_COUNT_PLUS_1
 } StatementResultType;
 
 typedef struct {
@@ -262,13 +262,13 @@ typedef struct {
     } u;
 } StatementResult;
 
-// 全局变量的引用
+/* 全局变量的引用 */
 typedef struct GlobalVariableRef_tag {
     Variable *variable;
     struct GlobalVariableRef_tag *next;
 } GlobalVariableRef;
 
-// 执行环境   存放局部变量 全局变量
+/* 执行环境   存放局部变量 全局变量 */
 typedef struct {
     Variable *variable;
     GlobalVariableRef *global_variable;
@@ -284,17 +284,16 @@ typedef struct {
     CRB_String *strings;
 } StringPool;
 
-// 解释器
+/* 解释器 */
 struct CRB_Interpreter_tag {
-    MEM_Storage interpreter_storage; // 解释器存储
-    MEM_Storage execute_storage; // 运行时存储
-    Variable *variable; // 变量列表
+    MEM_Storage interpreter_storage; /* 解释器存储 */
+    MEM_Storage execute_storage; /* 运行时存储 */
+    Variable *variable; /* 变量列表 */
     FunctionDefinition *function_list;
     StatementList *statement_list;
     int current_line_number;
 };
 
-// create
 void crb_function_define(char *identifier, ParameterList *parameter_list, Block *block);
 ParameterList *crb_create_parameter(char *identifier);
 ParameterList *crb_chain_parameter(ParameterList *list, char *identifier);
@@ -318,7 +317,6 @@ Statement *crb_create_global_statement(IdentifierList *identifier_list);
 IdentifierList *crb_create_global_identifier(char *identifier);
 IdentifierList *crb_chain_identifier(IdentifierList *list, char *identifier);
 
-// if 语句
 Statement *crb_create_if_statement(Expression *condition, Block *then_block, Elsif *elsif_list, Block *else_block);
 Elsif *crb_create_elsif(Expression *expression, Block *block);
 Elsif *crb_chain_elsif_list(Elsif *list, Elsif *add);
@@ -339,10 +337,8 @@ void crb_add_string_literal(int letter);
 void crb_reset_string_literal_buffer(void);
 char *crb_close_string_literal(void);
 
-// 执行
 StatementResult crb_execute_statement_list(CRB_Interpreter *inter, LocalEnvironment *env, StatementList *list);
 
-// 求值
 CRB_Value crb_eval_binary_expression(CRB_Interpreter *inter, LocalEnvironment *env, ExpressionType operator, Expression *left, Expression *right);
 CRB_Value crb_eval_minus_expression(CRB_Interpreter *inter, LocalEnvironment *env, Expression *operand);
 CRB_Value crb_eval_expression(CRB_Interpreter *inter, LocalEnvironment *env, Expression *expr);
@@ -362,11 +358,11 @@ void *crb_execute_malloc(CRB_Interpreter *inter, size_t size);
 Variable *crb_search_local_variable(LocalEnvironment *env, char *identifier);
 Variable *crb_search_glocal_variable(LocalEnvironment *env, char *identifier);
 void crb_add_local_variable(LocalEnvironment *env, char *identifier, CRB_Value *value);
-CRB_NativeFunctionProc *crb_search_function(char *name);
+FunctionDefinition *crb_search_function(char *name);
 char *crb_get_operator_string(ExpressionType type);
 
 void crb_compile_error(CompilerError id, ...);
-void crb_runtime_error(int line_number, CompilerError id, ...);
+void crb_runtime_error(int line_number, RuntimeError id, ...);
 
 CRB_Value crb_nv_print_proc(CRB_Interpreter *inter, int arg_count, CRB_Value *args);
 CRB_Value crb_nv_fopen_proc(CRB_Interpreter *inter, int arg_count, CRB_Value *args);

@@ -41,7 +41,7 @@ translation_unit: definition_or_statement | translation_unit definition_or_state
 
 definition_or_statement: function_definition |
                        statement {
-                        CRB_Interpreter (imnter = crb_get_current_interpreter();
+                        CRB_Interpreter *inter = crb_get_current_interpreter();
                         inter->statement_list = crb_chain_statement_list(inter->statement_list, $1);
                        };
 function_definition: FUNCTION IDENTIFIER LP parameter_list RP block
@@ -209,7 +209,7 @@ primary_expression:
         }
         | NULL_T
         {
-            $$ = crb_create_null_expression(NULL);
+            $$ = crb_create_null_expression();
         }
         ;
 
@@ -230,7 +230,7 @@ statement:
 global_statement:
         GLOBAL_T identifier_list SEMICOLON
         {
-            $$ = crb_create_gllobal_statement($2);
+            $$ = crb_create_global_statement($2);
         }
         ;
 
