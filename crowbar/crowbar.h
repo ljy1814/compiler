@@ -93,8 +93,6 @@ typedef enum {
     GE_EXPRESSION,
     LT_EXPRESSION,
     LE_EXPRESSION,
-    GT_EXPRESSION,
-    GE_EXPRESSION,
     LOGICAL_AND_EXPRESSION,
     LOGICAL_OR_EXPRESSION,
     MINUS_EXPRESSION,
@@ -142,9 +140,9 @@ struct Expression_tag {
 
 typedef struct Statement_tag Statement;
 
-typedef struct Statement_tag {
+typedef struct StatementList_tag {
     Statement *statement;
-    struct Statement_tag *next;
+    struct StatementList_tag *next;
 } StatementList;
 
 typedef struct {
@@ -272,7 +270,7 @@ typedef struct GlobalVariableRef_tag {
 // 执行环境   存放局部变量 全局变量
 typedef struct {
     Variable *variable;
-    GlobalVariableRef_tag *global_variable;
+    GlobalVariableRef *global_variable;
 } LocalEnvironment;
 
 struct CRB_String_tag {

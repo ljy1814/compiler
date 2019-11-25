@@ -33,7 +33,7 @@ void *MEM_realloc_func(MEM_Controller controller, char *fn, int line, void *ptr,
 char *MEM_strdup_func(MEM_Controller controller, char *fn, int line, char *ptr);
 
 // 打开创建一个存储器
-MEM_Storage MEM_open_storage_func(MEM_Controller controller, char *fn, int line, char *str);
+MEM_Storage MEM_open_storage_func(MEM_Controller controller, char *fn, int line, int page_size);
 
 // 从存储器分配内存
 void *MEM_storage_malloc_func(MEM_Controller controller, char *fn, int line, MEM_Storage storage, size_t size);
@@ -48,7 +48,7 @@ void MEM_dispose_storage_func(MEM_Controller controller, MEM_Storage storage);
 void MEM_set_error_handler(MEM_Controller controller, MEM_ErrorHandler handler);
 
 // 设置格式错误
-void MEM_set_fail_mode(MEM_Controller controller, MEM_FailMode mode)
+void MEM_set_fail_mode(MEM_Controller controller, MEM_FailMode mode);
     
 void MEM_dump_blocks_func(MEM_Controller controller, FILE *fp);
 void MEM_check_block_func(MEM_Controller controller, char *fn, int line, void *p);
@@ -61,13 +61,13 @@ void MEM_check_all_blocks_func(MEM_Controller controller, char *fn, int line);
 
 #define MEM_strdup(str) (MEM_strdup_func(MEM_CURRENT_CONTROLLER, __FILE__, __LINE__, str))
 
-#define MEM_open_storage(page_size) (MEM_open_storage_func(MEM_CURRENT_CONTROLLER, __FILE__, __LINE__, page_size))
+#define MEM_open_storage(page_size) ( MEM_open_storage_func(MEM_CURRENT_CONTROLLER, __FILE__, __LINE__, page_size))
 
 #define MEM_storage_malloc(storage, size) (MEM_storage_malloc_func(MEM_CURRENT_CONTROLLER, __FILE__, __LINE__, storage, size))
 
 #define MEM_free(ptr) (MEM_free_func(MEM_CURRENT_CONTROLLER, ptr))
 
-#define MEM_dispose_storage(storage) (MEM_dispose_storage_func(MEM_CURRENT_CONTROLLER, ptr)
+#define MEM_dispose_storage(storage) (MEM_dispose_storage_func(MEM_CURRENT_CONTROLLER, storage))
 
 
 #ifdef DEBUG

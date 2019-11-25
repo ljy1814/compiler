@@ -2,3 +2,4 @@ y.*
 *.swp
 *.swo
 *.yy.c
+*.o
