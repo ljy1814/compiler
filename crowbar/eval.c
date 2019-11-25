@@ -124,6 +124,7 @@ static CRB_Value eval_assign_expression(CRB_Interpreter *inter, LocalEnvironment
     if (NULL == left) {
         left = search_global_variable_from_env(inter, env, identifier);
     }
+    fprintf(stderr, "eval_assign_expression search identifier:%s left:%p\n", identifier, left);
 
     if (left != NULL) {
         /* 处理字符串值 */
@@ -577,7 +578,7 @@ static CRB_Value eval_function_call_expression(CRB_Interpreter *inter, LocalEnvi
     CRB_Value value;
     FunctionDefinition *func;
     char *identifier = expr->u.function_call_expression.identifier;
-    fprintf(stderr, "eval_function_call_expression %s %d\n", identifier, func->type);
+    fprintf(stderr, "eval_function_call_expression %s \n", identifier);
     func = crb_search_function(identifier);
     fprintf(stderr, "eval_function_call_expression %s %p\n", identifier, func);
     if (NULL == func) {

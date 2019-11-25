@@ -147,11 +147,14 @@ void CRB_add_global_variable(CRB_Interpreter *inter, char *identifier, CRB_Value
 {
     Variable *new_variable;
 
+    fprintf(stderr, "CRB_add_global_variable identifier:%s\n", identifier);
     new_variable = crb_execute_malloc(inter, sizeof(Variable));
     new_variable->name = crb_execute_malloc(inter, strlen(identifier) + 1);
     strcpy(new_variable->name, identifier);
     new_variable->next = inter->variable;
     new_variable->value = *value;
+    inter->variable = new_variable;
+    fprintf(stderr, "CRB_add_global_variable variable:%p\n", inter->variable);
 }
 
 void* crb_malloc(size_t size) {

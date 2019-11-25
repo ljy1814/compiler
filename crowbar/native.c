@@ -29,6 +29,7 @@ CRB_Value crb_nv_print_proc(CRB_Interpreter *interpreter, int arg_count, CRB_Val
         crb_runtime_error(0, ARGUMENT_TOO_MANY_ERR, MESSAGE_ARGUMENT_END);
     }
 
+    fprintf(stderr, "crb_nv_print_proc arg_count:%d type %d\n", arg_count, args[0].type);
     switch (args[0].type) {
         case CRB_BOOLEAN_VALUE:
             if (args[0].u.boolean_value) {
@@ -44,6 +45,7 @@ CRB_Value crb_nv_print_proc(CRB_Interpreter *interpreter, int arg_count, CRB_Val
             printf("%f", args[0].u.double_value);
             break;
         case CRB_STRING_VALUE:
+            fprintf(stderr, "crb_nv_print_proc arg_count:%d case string %s\n", arg_count, args[0].u.string_value->string);
             printf("%s", args[0].u.string_value->string);
             break;
         case CRB_NATIVE_POINTER_VALUE:
