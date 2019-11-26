@@ -14,16 +14,19 @@ struct MEM_Controller_tag {
     Header *block_header;
 };
 
+// 整数  小数 或者 指针
 typedef union {
     long l_dummy;
     double d_dummy;
     void *p_dummy;
 } Cell;
 
+#define CELL_SIZE (sizeof(Cell))
+
 typedef struct MemoryPage_tag MemoryPage;
 typedef MemoryPage *MemoryPageList;
 
-struct MEM_Page_tag {
+struct MemoryPage_tag {
     int cell_num;
     int use_cell_num;
     MemoryPageList next;
@@ -50,6 +53,8 @@ typedef union {
 #define ALIGN_SIZE (sizeof(Align))
 #define revalue_up_align(val) ((val) ? (((val) - 1) / ALIGN_SIZE + 1) : 0 )
 #define HEADER_ALIAGN_SIZE (revalue_up_align(sizeof(HeaderStruct)))
+
+#define larger(a , b) ( ((a) > (b)) ? (a) : (b) )
 
 typedef struct {
     int size;

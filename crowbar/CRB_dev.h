@@ -42,7 +42,7 @@ typedef struct {
         int int_value;
         double double_value;
         CRB_String *string_value;
-        CRB_NativePointer native_value;
+        CRB_NativePointer native_pointer;
     } u;
 } CRB_Value;
 
