@@ -55,7 +55,7 @@ void MEM_check_block_func(MEM_Controller controller, char *fn, int line, void *p
 void MEM_check_all_blocks_func(MEM_Controller controller, char *fn, int line);
 
 
-#define MEM_malloc(size) (MEM_malloc_func(MEM_CURRENT_CONTROLLER, __FILE__, __LINE__, size)
+#define MEM_malloc(size) (MEM_malloc_func(MEM_CURRENT_CONTROLLER, __FILE__, __LINE__, size))
 
 #define MEM_realloc(ptr, size) (MEM_realloc_func(MEM_CURRENT_CONTROLLER, __FILE__, __LINE__, ptr, size))
 

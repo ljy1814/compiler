@@ -54,5 +54,16 @@ void* MEM_storage_malloc_func(MEM_Controller controller, char *fn, int line, MEM
 }
 
 
+void MEM_dispose_storage_func(MEM_Controller controller, MEM_Storage storage)
+{
+    MemoryPage *tmp;
+
+    while(storage->page_list) {
+        tmp = storage->page_list->next;
+        MEM_free_func(controller, storage->page_list);
+        storage->page_list = tmp;
+    }
+}
+
 /* vim: set tabstop=4 set shiftwidth=4 */
 

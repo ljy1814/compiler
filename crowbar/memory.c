@@ -7,6 +7,55 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef DEBUG
+
+void check_mark_sub(unsigned char *mark, int size)
+{
+    int i;
+    for (i = 0; i < size; ++i) {
+        if (mark[i] != MARK) {
+            fprintf(stderr, "bad mark\n");
+            abort();
+        }
+    }
+}
+
+void check_mark(Header *header)
+{
+    unsigned char *tail;
+    check_mark_sub(header->s.mark, (char *)&header[1] - (char *)header->s.mark);
+    tail = ((unsigned char *)header) + header->s.size + sizeof(Header);
+    check_mark_sub(tail, MARK_SIZE);
+}
+
+static void rechain_block(MEM_Controller controller, Header *header)
+{
+    if (header->s.prev) {
+        header->s.prev->s.next = header;
+    } else {
+        controller->block_header = header;
+    }
+
+    if (header->s.next) {
+        header->s.next->s.prev = header;
+    }
+}
+
+static void unchain_block(MEM_Controller controller, Header *header)
+{
+    if (header->s.prev) {
+        header->s.prev->s.next = header->s.next;
+    } else {
+        controller->block_header = header->s.next;
+    }
+
+    if (header->s.next) {
+        header->s.next->s.prev = header->s.prev;
+    }
+}
+
+#endif
+
 
 void MEM_dump_blocks_func(MEM_Controller controller, FILE *fp)
 {
@@ -42,7 +91,7 @@ static void error_handler(MEM_Controller controller, char *filename, int line, c
 void set_header(Header *header, int size, char *filename, int line)
 {
     header->s.size = size;
-    header->s.filename = size;
+    header->s.filename = filename;
     header->s.line = size;
     memset(header->s.mark, MARK, (char*)&header[1] -(char*)header->s.mark);
 }
@@ -93,6 +142,29 @@ void *MEM_malloc_func(MEM_Controller controller, char *filename, int line, size_
 #endif
 
     return ptr;
+}
+
+void MEM_free_func(MEM_Controller controller, void *ptr)
+{
+    void *real_ptr;
+#ifdef DEBUG
+    int size;
+#endif
+    if (NULL == ptr) {
+        return ;
+    }
+
+#ifdef DEBUG
+    real_ptr = (char *)ptr - sizeof(Header);
+    check_mark((Header*)real_ptr);
+    size = ((Header*)real_ptr)->s.size;
+    unchain_block(controller, real_ptr);
+    memset(real_ptr, 0xCC, size + sizeof(Header));
+#else
+    real_ptr = ptr;
+#endif
+
+    free(real_ptr);
 }
 
 

@@ -74,6 +74,17 @@ void CRB_interpreter(CRB_Interpreter *interpreter)
     crb_execute_statement_list(interpreter, NULL, interpreter->statement_list);
 }
 
+static void release_global_strings(CRB_Interpreter *interpreter)
+{
+    while (interpreter->variable) {
+        Variable *tmp = interpreter->variable;
+        interpreter->variable = tmp->next;
+        if (CRB_STRING_VALUE == tmp->value.type) {
+            crb_release_string(tmp->value.u.string_value);
+        }
+    }
+}
+
 void CRB_dispose_interpreter(CRB_Interpreter *interpreter)
 {
     release_global_strings(interpreter);
