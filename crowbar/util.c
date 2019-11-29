@@ -117,5 +117,20 @@ char* crb_get_operator_string(ExpressionType type)
     return str;
 }
 
+FunctionDefinition *crb_search_function(char *name)
+{
+    FunctionDefinition *pos;
+    CRB_Interpreter *inter;
+
+    inter = crb_get_current_interpreter();
+
+    for (pos = inter->function_list; pos; pos = pos->next) {
+        if (!strcmp(pos->name, name)) {
+            break;
+        }
+    }
+    return pos;
+}
+
 /* vim: set tabstop=4 set shiftwidth=4 */
 

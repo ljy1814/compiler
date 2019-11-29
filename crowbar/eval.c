@@ -525,6 +525,66 @@ static CRB_Value call_native_function(CRB_Interpreter *inter, LocalEnvironment *
     return value;
 }
 
+static CRB_Value call_crowbar_function(CRB_Interpreter *inter, LocalEnvironment *env, Expression *expr, FunctionDefinition *func)
+{
+    CRB_Value v;
+    StatementResult result;
+    ArgumentList *arg_p;
+    ParameterList *param_p;
+    LocalEnvironment *local_env;
+
+    local_env = alloc_local_environment();
+
+    for (arg_p = expr->u.function_call_expression.argument, param_p = func->u.crowbar_f.parameter; arg_p; arg_p = arg_p->next, param_p = param_p->next) {
+        CRB_Value arg_val;
+        if (NULL == param_p) {
+            crb_runtime_error(expr->line_number, ARGUMENT_TOO_MANY_ERR, MESSAGE_ARGUMENT_END);
+        }
+        arg_val = eval_expression(inter, env, arg_p->expression);
+        crb_add_local_variable(local_env, param_p->name, &arg_val); // 添加到局部变量中
+    }
+
+    if (param_p) {
+        crb_runtime_error(expr->line_number, ARGUMENT_TOO_FEW_ERR, MESSAGE_ARGUMENT_END);
+    }
+
+    result = crb_execute_statement_list(inter, local_env, func->u.crowbar_f.block->statement_list);
+
+    if (RETURN_STATEMENT_RESULT == result.type) {
+        v = result.u.return_value;
+    } else {
+        v.type = CRB_NULL_VALUE;
+    }
+
+    dispose_local_environment(inter, local_env);
+
+    return v;
+}
+
+static CRB_Value eval_function_call_expression(CRB_Interpreter *inter, LocalEnvironment *env, Expression *expr)
+{
+    CRB_Value value;
+    FunctionDefinition *func;
+    char *identifier = expr->u.function_call_expression.identifier;
+    func = crb_search_function(identifier);
+    if (NULL == func) {
+        crb_runtime_error(expr->line_number, FUNCTION_NOT_FOUND_ERR, STRING_MESSAGE_ARGUMENT, "name", identifier, MESSAGE_ARGUMENT_END);
+    }
+    
+    switch (func->type) {
+    case CROWBAR_FUNCTION_DEFINITION:
+        value = call_crowbar_function(inter, env, expr, func);
+        break;
+    case NATIVE_FUNCTION_DEFINITION:
+        value = call_native_function(inter, env, expr, func->u.native_f.proc);
+        break;
+    default:
+        DBG_panic(("bad case..%d\n", func->type));
+    }
+
+    return value;
+}
+
 static CRB_Value eval_expression(CRB_Interpreter *inter, LocalEnvironment *env, Expression *expr)
 {
     CRB_Value v;
@@ -580,7 +640,7 @@ static CRB_Value eval_expression(CRB_Interpreter *inter, LocalEnvironment *env, 
             break;
         case EXPRESSION_TYPE_COUNT_PLUS_1:
         default:
-            DBG_panic("bad case. type:%d\n", expr->type);
+            DBG_panic(("bad case. type:%d\n", expr->type));
     }
 
     return v;
