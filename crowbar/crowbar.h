@@ -132,8 +132,8 @@ struct Expression_tag {
         double double_value;
         char *string_value;
         char *identifier;
-        AssignExpression *assign_expression;
-        BinaryExpression *binary_expression;
+        AssignExpression assign_expression;
+        BinaryExpression binary_expression;
         Expression *minus_expression;
         FunctionCallExpression function_call_expression;
     } u;
@@ -356,7 +356,7 @@ void *crb_malloc(size_t size);
 void *crb_execute_malloc(CRB_Interpreter *inter, size_t size);
 
 Variable *crb_search_local_variable(LocalEnvironment *env, char *identifier);
-Variable *crb_search_glocal_variable(LocalEnvironment *env, char *identifier);
+Variable *crb_search_global_variable(CRB_Interpreter *inter, char *identifier);
 void crb_add_local_variable(LocalEnvironment *env, char *identifier, CRB_Value *value);
 FunctionDefinition *crb_search_function(char *name);
 char *crb_get_operator_string(ExpressionType type);

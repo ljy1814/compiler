@@ -113,8 +113,8 @@ Expression* crb_create_assign_expression(char *variable, Expression *operand)
     Expression *expr;
 
     expr = crb_alloc_expression(ASSIGN_EXPRESSION);
-    expr->u.assign_expression->variable = variable;
-    expr->u.assign_expression->operand = operand;
+    expr->u.assign_expression.variable = variable;
+    expr->u.assign_expression.operand = operand;
 
     return expr;
 }
@@ -150,8 +150,8 @@ Expression* crb_create_binary_expression(ExpressionType operator, Expression *le
     } else {
         Expression *expr;
         expr = crb_alloc_expression(operator);
-        expr->u.binary_expression->left = left;
-        expr->u.binary_expression->right = right;
+        expr->u.binary_expression.left = left;
+        expr->u.binary_expression.right = right;
         return expr;
     }
 }

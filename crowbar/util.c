@@ -26,7 +26,9 @@ Variable* crb_search_global_variable(CRB_Interpreter *inter, char *identifier)
 {
     Variable *pos;
 
+    fprintf(stderr, "crb_search_global_variable identifier:%s variable:%p\n", identifier, inter->variable);
     for (pos = inter->variable; pos; pos = pos->next) {
+        fprintf(stderr, "crb_search_global_variable identifier:%s pos:%p\n", identifier, pos);
         if (!strcmp(pos->name, identifier)) {
             return pos;
         }
@@ -38,6 +40,7 @@ Variable* crb_search_global_variable(CRB_Interpreter *inter, char *identifier)
 Variable* crb_search_local_variable(LocalEnvironment *env, char *identifier)
 {
     Variable *pos;
+    fprintf(stderr, "crb_search_local_variable env:%p identifier:%s\n", env, identifier);
     if (NULL == env) {
         return NULL;
     }

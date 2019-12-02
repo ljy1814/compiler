@@ -22,6 +22,7 @@ CRB_Value crb_nv_print_proc(CRB_Interpreter *interpreter, int arg_count, CRB_Val
     CRB_Value value;
     value.type = CRB_NULL_VALUE;
 
+    fprintf(stderr, "crb_nv_print_proc arg_count:%d\n", arg_count);
     if (arg_count < 1) {
         crb_runtime_error(0, ARGUMENT_TOO_FEW_ERR, MESSAGE_ARGUMENT_END);
     } else if (arg_count > 1) {
@@ -43,7 +44,7 @@ CRB_Value crb_nv_print_proc(CRB_Interpreter *interpreter, int arg_count, CRB_Val
             printf("%f", args[0].u.double_value);
             break;
         case CRB_STRING_VALUE:
-            printf("%s", args[0].u.string_value);
+            printf("%s", args[0].u.string_value->string);
             break;
         case CRB_NATIVE_POINTER_VALUE:
             printf("(%s:%p)",
@@ -106,6 +107,10 @@ CRB_Value crb_nv_fclose_proc(CRB_Interpreter *interpreter, int arg_count, CRB_Va
         crb_runtime_error(0, FCLOSE_ARGUMENT_TYPE_ERR, MESSAGE_ARGUMENT_END);
     }
 
+    fp = args[0].u.native_pointer.pointer;
+    fclose(fp);
+
+    return value;
 }
 
 CRB_Value crb_nv_fgets_proc(CRB_Interpreter *interpreter, int arg_count, CRB_Value *args)

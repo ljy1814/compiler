@@ -72,6 +72,7 @@ static void create_message_argument(MessageArgument *arg, va_list ap)
     while((type = va_arg(ap, MessageArgumentType)) != MESSAGE_ARGUMENT_END) {
         arg[index].type = type;
         arg[index].name = va_arg(ap, char *);
+        fprintf(stderr, "create_message_argument type:%d %s\n", arg[index].type, arg[index].name);
 
         switch (type) {
             case INT_MESSAGE_ARGUMENT:
@@ -95,15 +96,18 @@ static void create_message_argument(MessageArgument *arg, va_list ap)
             default:
                 assert(0);
         }
+        fprintf(stderr, "create_message_argument type:%d %s id:%s\n", arg[index].type, arg[index].name, arg[index].u.string_val);
         index++;
         assert(index < MESSAGE_ARGUMENT_MAX);
     }
+    fprintf(stderr, "create_message_argument index:%d\n", index);
 }
 
 static void search_argument(MessageArgument *arg_list, char *arg_name, MessageArgument *arg)
 {
     int i;
     for (i = 0; arg_list[i].type != MESSAGE_ARGUMENT_END; i++) {
+        fprintf(stderr, "search_argument %s %d %s arg_name:%s\n", arg_name, arg_list[i].type, arg_list[i].name, arg_name);
         if (!strcmp(arg_list[i].name, arg_name)) {
             *arg = arg_list[i];
             return;
@@ -121,22 +125,27 @@ static void format_message(MessageFormat *format, VString *v, va_list ap)
     MessageArgument arg[MESSAGE_ARGUMENT_MAX];
     MessageArgument cur_arg;
 
+    fprintf(stderr, "format_message %s\n", format->format);
     create_message_argument(arg, ap);
     for (i = 0; format->format[i] != '\0'; ++i) {
         if (format->format[i] != '$') {
             add_character(v, format->format[i]);
             continue;
         }
-        assert(format->format[i] == '(');
+        assert(format->format[i+1] == '(');
         i+=2;
+        fprintf(stderr, "format_message %s\n", v->string);
 
         for (arg_name_index = 0; format->format[i] != ')'; ++arg_name_index, ++i) {
             arg_name[arg_name_index] = format->format[i];
         } 
         arg_name[arg_name_index] = '\0';
+        fprintf(stderr, "format_message arg_name %s\n", arg_name);
         assert(format->format[i] == ')');
+        fprintf(stderr, "format_message arg_name %s arg:%p ok\n", arg_name, arg);
 
         search_argument(arg, arg_name, &cur_arg);
+        fprintf(stderr, "format_message search arg_name %s ok\n", arg_name);
         switch (cur_arg.type) {
             case INT_MESSAGE_ARGUMENT:
                 sprintf(buf, "%d", cur_arg.u.int_val);

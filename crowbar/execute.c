@@ -219,6 +219,7 @@ static StatementResult execute_statement(CRB_Interpreter *inter, LocalEnvironmen
 {
     StatementResult result;
     result.type = NORMAL_STATEMENT_RESULT;
+    fprintf(stderr, "statement : %d\n", statement->type);
 
     switch (statement->type){
     case EXPRESSION_STATEMENT:
@@ -259,8 +260,10 @@ StatementResult crb_execute_statement_list(CRB_Interpreter *inter, LocalEnvironm
     StatementResult result;
 
     result.type = NORMAL_STATEMENT_RESULT;
+    fprintf(stderr, "crb_execute_statement_list ....\n");
 
     for (pos = list; pos; pos = pos->next) {
+        fprintf(stderr, "pos line:%d\n", pos->statement->line_number);
         result = execute_statement(inter, env, pos->statement);
         if (result.type != NORMAL_STATEMENT_RESULT) {
             goto FUNC_END;

@@ -75,8 +75,10 @@ void MEM_dump_blocks_func(MEM_Controller controller, FILE *fp)
 
     for (pos = controller->block_header; pos; pos = pos->s.next) {
         check_mark(pos);
+        fprintf(fp, "[%04d]%p***************\n", counter, (char*)pos + sizeof(Header));
+        fprintf(fp, "%s line %d size...%d\n", pos->s.filename, pos->s.line, pos->s.size);
+        counter++;
     }
-
 #endif
 }
 
