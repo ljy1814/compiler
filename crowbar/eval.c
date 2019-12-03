@@ -40,7 +40,9 @@ static CRB_Value eval_string_expression(CRB_Interpreter *inter, char *string_val
 {
     CRB_Value v;
     v.type = CRB_STRING_VALUE;
+    fprintf(stderr, "eval_string_expression string:%s\n", string_value);
     v.u.string_value = crb_literal_to_crb_string(inter, string_value);
+    fprintf(stderr, "eval_string_expression value type:%d string:%s\n", v.type, v.u.string_value->string);
 
     return v;
 }
@@ -522,7 +524,7 @@ static CRB_Value call_native_function(CRB_Interpreter *inter, LocalEnvironment *
     args = MEM_malloc(sizeof(CRB_Value) * arg_count);
 
     for (arg_p = expr->u.function_call_expression.argument, i = 0; arg_p; arg_p = arg_p->next, i++) {
-        fprintf(stderr, "call_native_function arg_p:%d\n", arg_p->expression->type);
+        fprintf(stderr, "call_native_function || arg_p:%d\n", arg_p->expression->type);
         args[i] = eval_expression(inter, env, arg_p->expression);
     }
 
@@ -607,22 +609,22 @@ static CRB_Value eval_expression(CRB_Interpreter *inter, LocalEnvironment *env, 
 
     switch (expr->type) {
         case BOOLEAN_EXPRESSION:
-            eval_boolean_expression(expr->u.boolean_value);
+            v = eval_boolean_expression(expr->u.boolean_value);
             break;
         case INT_EXPRESSION:
-            eval_int_expression(expr->u.int_value);
+            v = eval_int_expression(expr->u.int_value);
             break;
         case DOUBLE_EXPRESSION:
-            eval_double_expression(expr->u.double_value);
+            v =eval_double_expression(expr->u.double_value);
             break;
         case STRING_EXPRESSION:
-            eval_string_expression(inter, expr->u.string_value);
+            v = eval_string_expression(inter, expr->u.string_value);
             break;
         case IDENTIFIER_EXPRESSION:
-            eval_identifier_expression(inter, env, expr);
+            v = eval_identifier_expression(inter, env, expr);
             break;
         case ASSIGN_EXPRESSION:
-            eval_assign_expression(inter, env,
+            v = eval_assign_expression(inter, env,
                     expr->u.assign_expression.variable,
                     expr->u.assign_expression.operand);
             break;
