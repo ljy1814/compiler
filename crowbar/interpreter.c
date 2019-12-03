@@ -17,6 +17,7 @@ static void add_native_functions(CRB_Interpreter *inter)
     CRB_add_native_function(inter, "fclose", crb_nv_fclose_proc);
     CRB_add_native_function(inter, "fgets", crb_nv_fgets_proc);
     CRB_add_native_function(inter, "fputs", crb_nv_fputs_proc);
+    CRB_add_native_function(inter, "new_array", crb_nv_new_array_proc);
 }
 
 void CRB_add_native_function(CRB_Interpreter *interpreter, char *name, CRB_NativeFunctionProc *proc)
@@ -81,9 +82,6 @@ static void release_global_strings(CRB_Interpreter *interpreter)
     while (interpreter->variable) {
         Variable *tmp = interpreter->variable;
         interpreter->variable = tmp->next;
-        if (CRB_STRING_VALUE == tmp->value.type) {
-            crb_release_string(tmp->value.u.string_value);
-        }
     }
 }
 

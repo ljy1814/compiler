@@ -49,6 +49,7 @@ void crb_release_string(CRB_String *str)
     }
 }
 
+/*  v1
 CRB_String* crb_create_crowbar_string(CRB_Interpreter *inter, char *str)
 {
     CRB_String *ret = alloc_crb_string(inter, str, CRB_FALSE);
@@ -56,6 +57,7 @@ CRB_String* crb_create_crowbar_string(CRB_Interpreter *inter, char *str)
 
     return ret;
 }
+*/
 
 /* vim: set tabstop=4 set shiftwidth=4 */
 

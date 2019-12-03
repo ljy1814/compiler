@@ -16,9 +16,6 @@ static StatementResult execute_expression_statement(CRB_Interpreter *inter, Loca
 
     result.type = NORMAL_STATEMENT_RESULT;
     v = crb_eval_expression(inter, env, statement->u.expression_s);
-    if (CRB_STRING_VALUE == v.type) {
-        crb_release_string(v.u.string_value);
-    }
 
     return result;
 }

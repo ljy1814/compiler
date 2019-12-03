@@ -58,6 +58,14 @@ typedef enum {
     GLOBAL_VARIABLE_NOT_FOUND_ERR,
     GLOBAL_STATEMENT_IN_TOPLEVEL_ERR, /* 全局语句在顶层结构 */
     BAD_OPERATOR_FOR_STRING_ERR,
+    NOT_LVALUE_ERROR,
+    INDEX_OPERAND_NOT_ARRAY_ERR, 
+    INDEX_OPERAND_NOT_INT_ERR,
+    ARRAY_INDEX_OUT_OF_BOUNDS_ERR,
+    NO_SUCH_METHOD_ERR,
+    NEW_ARRAY_ARGUMENT_TYPE_ERR,
+    INC_DEC_OPERAND_TYPE_ERR, /* 自增 自减 操作数 类型错误 */
+    ARRAY_RESIZE_ARGUMENT_ERR,
     RUNTIME_ERROR_COUNT_PLUS_1  /* 计数加1 */
 } RuntimeError;
 
@@ -274,11 +282,61 @@ typedef struct {
     GlobalVariableRef *global_variable;
 } LocalEnvironment;
 
-struct CRB_String_tag {
-    int ref_count;
-    char *string;
-    CRB_Boolean is_literal;
+/* v2 */
+typedef struct RefInNativeFunc_tag {
+    CRB_Object *obj;
+    struct RefInNativeFunc_tag *next;
+} RefInNativeFunc ;
+
+typedef enum {
+    ARRAY_OBJECT = 1,
+    STRING_OBJECT ,
+    OBJECT_TYPE_COUNT_PLUS_1
+} ObjectType;
+
+typedef struct {
+    int current_heap_size;
+    int current_threshold;
+    CRB_Object *header;
+} Heap;
+
+struct CRB_Array_tag {
+    int size;
+    int alloc_size;
+    CRB_Value *array;
 };
+
+struct CRB_String_tag {
+    CRB_Boolean is_literal;
+    char *string;
+};
+
+struct CRB_Object_tag {
+    ObjectType type;
+    unsigned int marked:1;
+    union {
+        CRB_Array array;
+        CRB_String string;
+    } u;
+    struct CRB_Object_tag *prev;
+    struct CRB_Object_tag *next;
+};
+
+#define HEAP_THRESHOLD_SIZE (1024 * 256)
+#define dkc_is_object_value(type) ( CRB_STRING_VALUE == (type) || CRB_ARRAY_VALUE == (type) )
+
+typedef struct {
+    char *string;
+}VString ;
+
+/* v2 local env */
+struct CRB_LocalEnvironment_tag {
+    Variable *variable;
+    GlobalVariableRef *global_variable;
+    RefInNativeFunc *ref_in_native_method;
+    struct CRB_LocalEnvironment_tag *next;
+};
+
 
 typedef struct {
     CRB_String *strings;
@@ -292,6 +350,8 @@ struct CRB_Interpreter_tag {
     FunctionDefinition *function_list;
     StatementList *statement_list;
     int current_line_number;
+    /* v2 */
+    Heap heap;
 };
 
 void crb_function_define(char *identifier, ParameterList *parameter_list, Block *block);
@@ -347,7 +407,7 @@ CRB_String *crb_literal_to_crb_string(CRB_Interpreter *inter, char *str);
 void crb_refer_string(CRB_String *str);
 void crb_release_string(CRB_String *str);
 CRB_String *crb_search_crb_string(CRB_Interpreter *inter, char *str);
-CRB_String *crb_create_crowbar_string(CRB_Interpreter *inter, char *str);
+/* CRB_String *crb_create_crowbar_string(CRB_Interpreter *inter, char *str); */
 
 
 CRB_Interpreter *crb_get_current_interpreter(void);
@@ -364,11 +424,12 @@ char *crb_get_operator_string(ExpressionType type);
 void crb_compile_error(CompilerError id, ...);
 void crb_runtime_error(int line_number, RuntimeError id, ...);
 
-CRB_Value crb_nv_print_proc(CRB_Interpreter *inter, int arg_count, CRB_Value *args);
-CRB_Value crb_nv_fopen_proc(CRB_Interpreter *inter, int arg_count, CRB_Value *args);
-CRB_Value crb_nv_fclose_proc(CRB_Interpreter *inter, int arg_count, CRB_Value *args);
-CRB_Value crb_nv_fgets_proc(CRB_Interpreter *inter, int arg_count, CRB_Value *args);
-CRB_Value crb_nv_fputs_proc(CRB_Interpreter *inter, int arg_count, CRB_Value *args);
+CRB_Value crb_nv_print_proc(CRB_Interpreter *inter, CRB_LocalEnvironment *env, int arg_count, CRB_Value *args);
+CRB_Value crb_nv_fopen_proc(CRB_Interpreter *inter, CRB_LocalEnvironment *env, int arg_count, CRB_Value *args);
+CRB_Value crb_nv_fclose_proc(CRB_Interpreter *inter, CRB_LocalEnvironment *env, int arg_count, CRB_Value *args);
+CRB_Value crb_nv_fgets_proc(CRB_Interpreter *inter, CRB_LocalEnvironment *env, int arg_count, CRB_Value *args);
+CRB_Value crb_nv_fputs_proc(CRB_Interpreter *inter, CRB_LocalEnvironment *env, int arg_count, CRB_Value *args);
+CRB_Value crb_nv_new_array_proc(CRB_Interpreter *inter, CRB_LocalEnvironment *env, int arg_count, CRB_Value *args);
 void crb_add_std_fp(CRB_Interpreter *inter);
 
 #endif
