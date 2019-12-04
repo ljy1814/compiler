@@ -22,6 +22,7 @@ static CRB_String *alloc_crb_string(CRB_Interpreter *inter, char *str, CRB_Boole
     return ret;
 }
 
+/*
 CRB_String* crb_literal_to_crb_string(CRB_Interpreter *inter, char *str)
 {
     CRB_String *ret;
@@ -30,6 +31,7 @@ CRB_String* crb_literal_to_crb_string(CRB_Interpreter *inter, char *str)
 
     return ret;
 }
+*/
 
 void crb_refer_string(CRB_String *str)
 {

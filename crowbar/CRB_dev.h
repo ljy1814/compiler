@@ -67,5 +67,6 @@ void CRB_add_global_variable(CRB_Interpreter *inter, char *identifier, CRB_Value
 CRB_Object* CRB_create_array(CRB_Interpreter *inter, CRB_LocalEnvironment *env, int size);
 char* CRB_value_to_string(CRB_Value *value);
 CRB_Object* crb_create_crowbar_string(CRB_Interpreter *inter, CRB_LocalEnvironment *env, char *str);
+void chain_string(CRB_Interpreter *inter, CRB_Value *left, CRB_Value *right, CRB_Value *result);
 
 #endif

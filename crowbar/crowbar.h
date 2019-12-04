@@ -322,12 +322,26 @@ struct CRB_Object_tag {
     struct CRB_Object_tag *next;
 };
 
+#define STACK_ALLOC_SIZE (256)
 #define HEAP_THRESHOLD_SIZE (1024 * 256)
 #define dkc_is_object_value(type) ( CRB_STRING_VALUE == (type) || CRB_ARRAY_VALUE == (type) )
 
 typedef struct {
     char *string;
 }VString ;
+
+typedef struct {
+    int stack_alloc_size;
+    int stack_pointer;
+    CRB_Value *stack;
+} Stack;
+
+CRB_Object* crb_create_crowbar_string_i(CRB_Interpreter *inter, char *str);
+CRB_Object* crb_literal_to_crb_string(CRB_Interpreter *inter, char *str);
+void shrink_stack(CRB_Interpreter *inter, int shrink_size);
+CRB_Value* peek_value(CRB_Interpreter *inter, int index);
+CRB_Value pop_value(CRB_Interpreter *inter);
+void push_value(CRB_Interpreter *inter, CRB_Value *value);
 
 /* v2 local env */
 struct CRB_LocalEnvironment_tag {
@@ -352,6 +366,8 @@ struct CRB_Interpreter_tag {
     int current_line_number;
     /* v2 */
     Heap heap;
+    Stack stack;
+    CRB_LocalEnvironment *top_environment;
 };
 
 void crb_function_define(char *identifier, ParameterList *parameter_list, Block *block);
@@ -403,7 +419,6 @@ CRB_Value crb_eval_binary_expression(CRB_Interpreter *inter, LocalEnvironment *e
 CRB_Value crb_eval_minus_expression(CRB_Interpreter *inter, LocalEnvironment *env, Expression *operand);
 CRB_Value crb_eval_expression(CRB_Interpreter *inter, LocalEnvironment *env, Expression *expr);
 
-CRB_String *crb_literal_to_crb_string(CRB_Interpreter *inter, char *str);
 void crb_refer_string(CRB_String *str);
 void crb_release_string(CRB_String *str);
 CRB_String *crb_search_crb_string(CRB_Interpreter *inter, char *str);
