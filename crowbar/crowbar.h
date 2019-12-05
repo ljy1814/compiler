@@ -107,6 +107,11 @@ typedef enum {
     MINUS_EXPRESSION,
     FUNCTION_CALL_EXPRESSION,
     NULL_EXPRESSION,
+    /* v2 */
+    ARRAY_EXPRESSION,
+    INDEX_EXPRESSION,
+    INCREMENT_EXPRESSION,
+    DECREMENT_EXPRESSION,
     EXPRESSION_TYPE_COUNT_PLUS_1
 } ExpressionType;
 
@@ -117,7 +122,8 @@ typedef struct ArgumentList_tag {
 } ArgumentList;
 
 typedef struct {
-    char *variable;
+    /* char *variable; */
+    Expression *left;
     Expression *operand;
 } AssignExpression;
 
@@ -130,6 +136,28 @@ typedef struct {
     char *identifier;
     ArgumentList *argument;  /* 形参列表 */
 } FunctionCallExpression;
+
+/* v2 */
+typedef struct ExpressionList_tag {
+    Expression *expression;
+    struct ExpressionList_tag *next;
+} ExpressionList;
+
+typedef struct {
+    Expression *array;
+    Expression *index;
+} IndexExpression;
+
+typedef struct {
+    Expression *expression;
+    char *identifier;
+    ArgumentList *argument;
+} MethodCallExpression;
+
+typedef struct {
+    Expression *operand;
+} IncrementOrDecrement;
+/* v2 */
 
 struct Expression_tag {
     ExpressionType type;
@@ -144,6 +172,11 @@ struct Expression_tag {
         BinaryExpression binary_expression;
         Expression *minus_expression;
         FunctionCallExpression function_call_expression;
+        /* v2 */
+        MethodCallExpression method_call_expression;
+        ExpressionList *array_literal;
+        IndexExpression index_expression;
+        IncrementOrDecrement inc_dec;
     } u;
 };
 
@@ -228,7 +261,8 @@ typedef struct ParameterList_tag {
 
 typedef enum {
     CROWBAR_FUNCTION_DEFINITION = 1, /* 自定义函数 */
-    NATIVE_FUNCTION_DEFINITION /* 内置函数 */
+    NATIVE_FUNCTION_DEFINITION, /* 内置函数 */
+    FUNCTION_DEFINITION_TYPE_COUNT_PLUS_1
 } FunctionDefinitionType;
 
 typedef struct FunctionDefinition_tag {
@@ -341,7 +375,13 @@ CRB_Object* crb_literal_to_crb_string(CRB_Interpreter *inter, char *str);
 void shrink_stack(CRB_Interpreter *inter, int shrink_size);
 CRB_Value* peek_value(CRB_Interpreter *inter, int index);
 CRB_Value pop_value(CRB_Interpreter *inter);
+CRB_Value* push_stack(CRB_Interpreter *inter, CRB_Value *value);
+/* 注册全局函数 */
+Variable* crb_add_global_variable(CRB_Interpreter *inter, char *identifier);
+
 void push_value(CRB_Interpreter *inter, CRB_Value *value);
+CRB_Value* peek_stack(CRB_Interpreter *inter, int index);
+void dispose_ref_in_native_method(CRB_LocalEnvironment *env);
 
 /* v2 local env */
 struct CRB_LocalEnvironment_tag {
@@ -381,7 +421,7 @@ StatementList *crb_create_statement_list(Statement *statement);
 StatementList *crb_chain_statement_list(StatementList *list, Statement *statement);
 
 Expression *crb_alloc_expression(ExpressionType type);
-Expression *crb_create_assign_expression(char *variable, Expression *operand);
+Expression *crb_create_assign_expression(Expression *left, Expression *operand);
 Expression *crb_create_binary_expression(ExpressionType type, Expression *left, Expression *right);
 Expression *crb_create_minus_expression(Expression *operand);
 Expression *crb_create_identifier_expression(char *identifier);
@@ -413,11 +453,11 @@ void crb_add_string_literal(int letter);
 void crb_reset_string_literal_buffer(void);
 char *crb_close_string_literal(void);
 
-StatementResult crb_execute_statement_list(CRB_Interpreter *inter, LocalEnvironment *env, StatementList *list);
+StatementResult crb_execute_statement_list(CRB_Interpreter *inter, CRB_LocalEnvironment *env, StatementList *list);
 
-CRB_Value crb_eval_binary_expression(CRB_Interpreter *inter, LocalEnvironment *env, ExpressionType operator, Expression *left, Expression *right);
-CRB_Value crb_eval_minus_expression(CRB_Interpreter *inter, LocalEnvironment *env, Expression *operand);
-CRB_Value crb_eval_expression(CRB_Interpreter *inter, LocalEnvironment *env, Expression *expr);
+CRB_Value crb_eval_binary_expression(CRB_Interpreter *inter, CRB_LocalEnvironment *env, ExpressionType operator, Expression *left, Expression *right);
+CRB_Value crb_eval_minus_expression(CRB_Interpreter *inter, CRB_LocalEnvironment *env, Expression *operand);
+CRB_Value crb_eval_expression(CRB_Interpreter *inter, CRB_LocalEnvironment *env, Expression *expr);
 
 void crb_refer_string(CRB_String *str);
 void crb_release_string(CRB_String *str);
@@ -430,9 +470,9 @@ void crb_set_current_interpreter(CRB_Interpreter *inter);
 void *crb_malloc(size_t size);
 void *crb_execute_malloc(CRB_Interpreter *inter, size_t size);
 
-Variable *crb_search_local_variable(LocalEnvironment *env, char *identifier);
-Variable *crb_search_global_variable(CRB_Interpreter *inter, char *identifier);
-void crb_add_local_variable(LocalEnvironment *env, char *identifier, CRB_Value *value);
+Variable* crb_search_local_variable(CRB_LocalEnvironment *env, char *identifier);
+Variable* crb_search_global_variable(CRB_Interpreter *inter, char *identifier);
+Variable* crb_add_local_variable(CRB_LocalEnvironment *env, char *identifier);
 FunctionDefinition *crb_search_function(char *name);
 char *crb_get_operator_string(ExpressionType type);
 

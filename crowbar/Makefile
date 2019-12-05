@@ -9,7 +9,6 @@ OBJS = \
   execute.o\
   eval.o\
   string.o\
-  string_pool.o\
   util.o\
   native.o\
   error.o\

@@ -108,12 +108,12 @@ Expression* crb_alloc_expression(ExpressionType type)
     return expr;
 }
 
-Expression* crb_create_assign_expression(char *variable, Expression *operand)
+Expression* crb_create_assign_expression(Expression *left, Expression *operand)
 {
     Expression *expr;
 
     expr = crb_alloc_expression(ASSIGN_EXPRESSION);
-    expr->u.assign_expression.variable = variable;
+    expr->u.assign_expression.left = left;
     expr->u.assign_expression.operand = operand;
 
     return expr;
@@ -141,7 +141,7 @@ static Expression convert_value_to_expression(CRB_Value *v)
 
 Expression* crb_create_binary_expression(ExpressionType operator, Expression *left, Expression *right)
 {
-    if ( ( (INT_EXPRESSION == left->type) || (DOUBLE_EXPRESSION == left->type) ) &&
+   if ( ( (INT_EXPRESSION == left->type) || (DOUBLE_EXPRESSION == left->type) ) &&
            ( (INT_EXPRESSION== right->type || DOUBLE_EXPRESSION == right->type) ) ) {
         CRB_Value v;
         v = crb_eval_binary_expression(crb_get_current_interpreter(), NULL, operator, left, right);

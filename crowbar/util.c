@@ -37,7 +37,7 @@ Variable* crb_search_global_variable(CRB_Interpreter *inter, char *identifier)
     return NULL;
 }
 
-Variable* crb_search_local_variable(LocalEnvironment *env, char *identifier)
+Variable* crb_search_local_variable(CRB_LocalEnvironment *env, char *identifier)
 {
     Variable *pos;
     fprintf(stderr, "crb_search_local_variable env:%p identifier:%s\n", env, identifier);
@@ -143,18 +143,17 @@ void* crb_execute_malloc(CRB_Interpreter *inter, size_t size)
     return p;
 }
 
-void CRB_add_global_variable(CRB_Interpreter *inter, char *identifier, CRB_Value *value)
+Variable* crb_add_global_variable(CRB_Interpreter *inter, char *identifier)
 {
     Variable *new_variable;
 
-    fprintf(stderr, "CRB_add_global_variable identifier:%s\n", identifier);
     new_variable = crb_execute_malloc(inter, sizeof(Variable));
     new_variable->name = crb_execute_malloc(inter, strlen(identifier) + 1);
     strcpy(new_variable->name, identifier);
     new_variable->next = inter->variable;
-    new_variable->value = *value;
     inter->variable = new_variable;
-    fprintf(stderr, "CRB_add_global_variable variable:%p\n", inter->variable);
+
+    return new_variable;
 }
 
 void* crb_malloc(size_t size) {
@@ -168,14 +167,15 @@ void* crb_malloc(size_t size) {
     return p;
 }
 
-void crb_add_local_variable(LocalEnvironment *env, char *identifier, CRB_Value *value)
+Variable* crb_add_local_variable(CRB_LocalEnvironment *env, char *identifier)
 {
     Variable *new_variable;
     new_variable = MEM_malloc(sizeof(Variable));
     new_variable->name = identifier;
-    new_variable->value = *value;
     new_variable->next = env->variable;
     env->variable = new_variable;
+
+    return new_variable;
 }
 
 /* v2 */

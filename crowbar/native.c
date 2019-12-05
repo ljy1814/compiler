@@ -51,7 +51,7 @@ CRB_Value crb_nv_fopen_proc(CRB_Interpreter *interpreter, CRB_LocalEnvironment *
         crb_runtime_error(0, FOPEN_ARGUMENT_TYPE_ERR, MESSAGE_ARGUMENT_END);
     }
 
-    fp = fopen(args[0].u.object->u.string.string, args[1].u.object->u.string->string);
+    fp = fopen(args[0].u.object->u.string.string, args[1].u.object->u.string.string);
     if (NULL == fp) {
         value.type = CRB_NULL_VALUE;
     } else {
@@ -144,7 +144,7 @@ CRB_Value crb_nv_fputs_proc(CRB_Interpreter *interpreter, CRB_LocalEnvironment *
     }
 
     fp = args[1].u.native_pointer.pointer;
-    fputs(args[0].u.object->u.string->string, fp);
+    fputs(args[0].u.object->u.string.string, fp);
 
     return value;
 }
@@ -180,6 +180,16 @@ CRB_Value new_array_sub(CRB_Interpreter *inter, CRB_LocalEnvironment *env, int a
 
     ret.type = CRB_ARRAY_VALUE;
     ret.u.object = CRB_create_array(inter, env, size);
+
+    if (arg_index == arg_count - 1) {
+        for (i = 0; i < size; ++i) {
+            ret.u.object->u.array.array[i].type = CRB_NULL_VALUE;
+        }
+    } else {
+        for (i = 0; i < size; ++i) {
+            ret.u.object->u.array.array[i] = new_array_sub(inter, env, arg_count, args, arg_index + 1);
+        }
+    }
 }
 
 CRB_Value crb_nv_new_array_proc(CRB_Interpreter *inter, CRB_LocalEnvironment *env, int arg_count, CRB_Value *args)

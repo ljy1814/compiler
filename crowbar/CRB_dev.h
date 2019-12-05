@@ -60,8 +60,6 @@ typedef CRB_Value CRB_NativeFunctionProc(CRB_Interpreter *interpreter, CRB_Local
 /* 注册c语言函数 */
 void CRB_add_native_function(CRB_Interpreter *interpreter, char *name, CRB_NativeFunctionProc *proc);
 
-/* 注册全局函数 */
-void CRB_add_global_variable(CRB_Interpreter *inter, char *identifier, CRB_Value *value);
 
 /* v2 */
 CRB_Object* CRB_create_array(CRB_Interpreter *inter, CRB_LocalEnvironment *env, int size);
