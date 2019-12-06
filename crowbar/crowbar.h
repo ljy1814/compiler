@@ -106,6 +106,7 @@ typedef enum {
     LOGICAL_OR_EXPRESSION,
     MINUS_EXPRESSION,
     FUNCTION_CALL_EXPRESSION,
+    METHOD_CALL_EXPRESSION,
     NULL_EXPRESSION,
     /* v2 */
     ARRAY_EXPRESSION,
@@ -382,6 +383,10 @@ Variable* crb_add_global_variable(CRB_Interpreter *inter, char *identifier);
 void push_value(CRB_Interpreter *inter, CRB_Value *value);
 CRB_Value* peek_stack(CRB_Interpreter *inter, int index);
 void dispose_ref_in_native_method(CRB_LocalEnvironment *env);
+void CRB_add_global_variable(CRB_Interpreter *inter, char *identifier, CRB_Value *value);
+Expression* crb_create_index_expression(Expression *array, Expression *index);
+Expression* crb_create_method_call_expression(Expression *expression, char *method_name, ArgumentList *argument);
+Expression* crb_create_incdec_expression(Expression *operand, ExpressionType inc_or_dec);
 
 /* v2 local env */
 struct CRB_LocalEnvironment_tag {

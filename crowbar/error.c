@@ -183,6 +183,8 @@ void self_check()
         DBG_panic(("compile error message format error. COMPILE_ERROR_COUNT_PLUS_1..%d\n", COMPILE_ERROR_COUNT_PLUS_1));
     }
 
+    fprintf(stderr, "------split----\n");
+
     if (strcmp(crb_runtime_error_message_format[0].format, "dummy") != 0) {
         DBG_panic(("runtime error message format error.\n"));
     }
@@ -214,9 +216,12 @@ void crb_runtime_error(int line_number, RuntimeError id, ...)
     va_list ap;
     VString message;
 
+    fprintf(stderr, "+++++++\n");
     self_check();
+    fprintf(stderr, "=======\n");
     va_start(ap, id);
     clear_v_string(&message);
+    fprintf(stderr, "-------\n");
     format_message(&crb_compile_error_message_format[id], &message, ap);
     fprintf(stderr, "%3d:%s\n", line_number, message.string);
     va_end(ap);

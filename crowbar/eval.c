@@ -24,6 +24,7 @@ static void eval_int_expression(CRB_Interpreter *inter, int int_value)
     v.type = CRB_INT_VALUE;
     v.u.int_value = int_value;
 
+    fprintf(stderr, "eval_int_expression %d\n", int_value);
     push_value(inter, &v);
 }
 
@@ -40,6 +41,7 @@ static void eval_string_expression(CRB_Interpreter *inter, char *string_value)
 {
     CRB_Value v;
     v.type = CRB_STRING_VALUE;
+    fprintf(stderr, "eval_string_expression %s|\n", string_value);
     v.u.object = crb_literal_to_crb_string(inter, string_value);
 
     push_value(inter, &v);
@@ -78,6 +80,7 @@ static void eval_identifier_expression(CRB_Interpreter *inter, CRB_LocalEnvironm
     Variable *vp;
 
     vp = crb_search_local_variable(env, expr->u.identifier);
+    fprintf(stderr, "eval_identifier_expression crb_search_local_variable vup:%p\n", vp);
     if (vp != NULL) {
         v = vp->value;
         push_value(inter, &v);
@@ -85,9 +88,11 @@ static void eval_identifier_expression(CRB_Interpreter *inter, CRB_LocalEnvironm
     }
 
     vp = search_global_variable_from_env(inter, env, expr->u.identifier);
+    fprintf(stderr, "eval_identifier_expression search_global_variable_from_env vup:%p\n", vp);
     if (vp != NULL) {
         v = vp->value;
     } else {
+        fprintf(stderr, "eval_identifier_expression search_global_variable_from_env else vp:%p\n", vp);
         crb_runtime_error(expr->line_number, VARIABLE_NOT_FOUND_ERR, STRING_MESSAGE_ARGUMENT, "token", expr->u.identifier, MESSAGE_ARGUMENT_END);
     }
 
@@ -151,6 +156,7 @@ CRB_Value* get_array_element_lvalue(CRB_Interpreter *inter, CRB_LocalEnvironment
 CRB_Value* get_lvalue(CRB_Interpreter *inter, CRB_LocalEnvironment *env, Expression *expr)
 {
     CRB_Value *dest;
+    fprintf(stderr, "get_lvalue start %d...\n", expr->type);
     if (IDENTIFIER_EXPRESSION == expr->type) {
         dest = get_identifier_value(inter, env, expr->u.identifier);
     } else if (INDEX_EXPRESSION == expr->type) {
@@ -167,10 +173,13 @@ static void eval_assign_expression(CRB_Interpreter *inter, CRB_LocalEnvironment 
     CRB_Value *src;
     CRB_Value *dest;
 
+    fprintf(stderr, "eval_assign_expression left:%d... expr:%d\n", left->type, expr->type);
     eval_expression(inter, env, expr);
-    src = peek_value(inter, 0);
+    src = peek_stack(inter, 0);
+    fprintf(stderr, "eval_assign_expression peek_stack ok\n");
 
     dest = get_lvalue(inter, env, left);
+    fprintf(stderr, "eval_assign_expression get_lvalue ok\n");
     *dest = *src;
 }
 
@@ -438,6 +447,7 @@ void eval_binary_expression(CRB_Interpreter *inter, CRB_LocalEnvironment *env, E
 
     pop_value(inter);
     pop_value(inter);
+    fprintf(stderr, "eval_binary_expression result:%d\n", result.type);
     push_value(inter, &result);
 }
 
@@ -640,6 +650,7 @@ static void eval_function_call_expression(CRB_Interpreter *inter, CRB_LocalEnvir
 
 static void eval_expression(CRB_Interpreter *inter, CRB_LocalEnvironment *env, Expression *expr)
 {
+    fprintf(stderr, "eval_expression:%d\n", expr->type);
     switch (expr->type) {
         case BOOLEAN_EXPRESSION:
             eval_boolean_expression(inter, expr->u.boolean_value);
@@ -651,12 +662,15 @@ static void eval_expression(CRB_Interpreter *inter, CRB_LocalEnvironment *env, E
             eval_double_expression(inter, expr->u.double_value);
             break;
         case STRING_EXPRESSION:
+            fprintf(stderr, "eval_expression %d %s--\n", expr->line_number, expr->u.string_value);
             eval_string_expression(inter, expr->u.string_value);
             break;
         case IDENTIFIER_EXPRESSION:
+            fprintf(stderr, "eval_expression IDENTIFIER_EXPRESSION %d %s\n", expr->type, expr->u.identifier);
             eval_identifier_expression(inter, env, expr);
             break;
         case ASSIGN_EXPRESSION:
+            fprintf(stderr, "eval_expression left:%d op:%d\n", expr->u.assign_expression.left->type , expr->u.assign_expression.operand->type);
             eval_assign_expression(inter, env,
                     expr->u.assign_expression.left,
                     expr->u.assign_expression.operand);
@@ -672,7 +686,7 @@ static void eval_expression(CRB_Interpreter *inter, CRB_LocalEnvironment *env, E
         case GE_EXPRESSION:
         case LT_EXPRESSION:
         case LE_EXPRESSION:
-            crb_eval_binary_expression(inter, env, expr->type, expr->u.binary_expression.left, expr->u.binary_expression.right);
+            eval_binary_expression(inter, env, expr->type, expr->u.binary_expression.left, expr->u.binary_expression.right);
             break;
 
         case LOGICAL_AND_EXPRESSION:
@@ -700,6 +714,7 @@ CRB_Value crb_eval_expression(CRB_Interpreter *inter, CRB_LocalEnvironment *env,
 {
     eval_expression(inter, env, expr);
 
+    fprintf(stderr, "crb_eval_expression -- expr:%d\n", expr->type);
     return pop_value(inter);
 }
 

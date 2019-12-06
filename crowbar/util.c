@@ -143,6 +143,14 @@ void* crb_execute_malloc(CRB_Interpreter *inter, size_t size)
     return p;
 }
 
+void CRB_add_global_variable(CRB_Interpreter *inter, char *identifier, CRB_Value *value)
+{
+    Variable *new_variable;
+
+    new_variable = crb_add_global_variable(inter, identifier);
+    new_variable->value = *value;
+}
+
 Variable* crb_add_global_variable(CRB_Interpreter *inter, char *identifier)
 {
     Variable *new_variable;

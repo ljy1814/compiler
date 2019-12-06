@@ -11,6 +11,8 @@ OBJS = \
   string.o\
   util.o\
   native.o\
+  stack.o\
+  heap.o\
   error.o\
   error_message.o\
   ./memory/mem.o\
@@ -53,4 +55,6 @@ native.o: native.c MEM.h DBG.h crowbar.h CRB.h CRB_dev.h
 string.o: string.c MEM.h crowbar.h CRB.h CRB_dev.h
 string_pool.o: string_pool.c MEM.h crowbar.h CRB.h CRB_dev.h
 util.o: util.c MEM.h DBG.h crowbar.h CRB.h CRB_dev.h
+stack.o: stack.c MEM.h DBG.h crowbar.h CRB.h CRB_dev.h
+heap.o: heap.c MEM.h DBG.h crowbar.h CRB.h CRB_dev.h
 

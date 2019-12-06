@@ -7,6 +7,73 @@
 #include "DBG.h"
 #include "crowbar.h"
 
+Expression* crb_create_index_expression(Expression *array, Expression *index)
+{
+    Expression *exp;
+
+    exp = crb_alloc_expression(INDEX_EXPRESSION);
+    exp->u.index_expression.array = array;
+    exp->u.index_expression.index = index;
+
+    return exp;
+}
+
+Expression* crb_create_method_call_expression(Expression *expression, char *method_name, ArgumentList *argument)
+{
+    Expression* exp;
+
+    exp = crb_alloc_expression(METHOD_CALL_EXPRESSION);
+    exp->u.method_call_expression.expression = expression;
+    exp->u.method_call_expression.identifier = method_name;
+    exp->u.method_call_expression.argument = argument;
+
+    return exp;
+}
+
+Expression* crb_create_incdec_expression(Expression *operand, ExpressionType inc_or_dec)
+{
+    Expression *exp;
+
+    exp = crb_alloc_expression(inc_or_dec);
+    exp->u.inc_dec.operand = operand;
+
+    return exp;
+}
+
+Expression* crb_create_array_expression(ExpressionList *list)
+{
+    Expression *expr;
+
+    expr = crb_alloc_expression(ARRAY_EXPRESSION);
+    expr->u.array_literal = list;
+
+    return expr;
+}
+
+ExpressionList* crb_create_expression_list(Expression *expr)
+{
+    ExpressionList *el;
+
+    el = crb_malloc(sizeof(ExpressionList));
+    el->expression = expr;
+    el->next = NULL;
+
+    return el;
+}
+
+ExpressionList* crb_chain_expression_list(ExpressionList *list, Expression *expr)
+{
+    ExpressionList *pos;
+
+    for (pos = list; pos->next; pos = pos->next) {
+        ;
+    }
+
+    pos->next = crb_create_expression_list(expr);
+
+    return list;
+}
+
 void crb_function_define(char *identifier, ParameterList *parameter_list, Block *block)
 {
     FunctionDefinition *f;
@@ -299,6 +366,7 @@ Statement* crb_create_for_statement(Expression *init, Expression *cond, Expressi
     Statement *st;
 
     st = alloc_statement(FOR_STATEMENT);
+    fprintf(stderr, "|||| eval_expression left:%d op:%d\n", init->u.assign_expression.left->type , init->u.assign_expression.operand->type);
     st->u.for_s.init = init;
     st->u.for_s.condition = cond;
     st->u.for_s.post = post;
