@@ -1,7 +1,7 @@
-y.*
+y.tab.*
+y.output
 *.swp
 *.swo
-*.yy.c
 *.o
-*/tags
-crowbar
+tags
+crowbar/crowbar
