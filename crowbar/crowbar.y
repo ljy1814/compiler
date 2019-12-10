@@ -173,9 +173,9 @@ multiplicative_expression:
         }
         ;
 
-/* 一元运算 */
+/* 一元运算 修复a.size .附近语法错误 */
 unary_expression:
-        primary_expression
+        postfix_expression
         | SUB unary_expression
         {
             $$ = crb_create_minus_expression($2);

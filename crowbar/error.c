@@ -200,6 +200,7 @@ void crb_compile_error(CompilerError id, ...)
     VString message;
     int line_number;
 
+    fprintf(stderr, "crb_compile_error.....id:%d\n", id);
     self_check();
     va_start(ap, id);
     line_number = crb_get_current_interpreter()->current_line_number;
@@ -216,13 +217,14 @@ void crb_runtime_error(int line_number, RuntimeError id, ...)
     va_list ap;
     VString message;
 
+    fprintf(stderr, "crb_runtime_error.....id:%d\n", id);
     fprintf(stderr, "+++++++\n");
     self_check();
     fprintf(stderr, "=======\n");
     va_start(ap, id);
     clear_v_string(&message);
     fprintf(stderr, "-------\n");
-    format_message(&crb_compile_error_message_format[id], &message, ap);
+    format_message(&crb_runtime_error_message_format[id], &message, ap);
     fprintf(stderr, "%3d:%s\n", line_number, message.string);
     va_end(ap);
 
@@ -239,6 +241,7 @@ int yyerror(const char *str)
         near_token = yytext;
     }
 
+    /* fprintf(stderr, "yyerror str:%s near_token:%s\n", str, near_token); */
     crb_compile_error(PARSE_ERR, STRING_MESSAGE_ARGUMENT, "token", near_token, MESSAGE_ARGUMENT_END);
     return 0;
 }

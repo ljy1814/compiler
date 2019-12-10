@@ -17,7 +17,7 @@ OBJS = \
   error_message.o\
   ./memory/mem.o\
   ./debug/dbg.o
-CFLAGS = -c -g -Wall -Wswitch-enum -ansi -pedantic -DDEBUG
+CFLAGS = -c -g -Wall -Wswitch-enum -ansi -pedantic -DDEBUG -DYYERROR_VERBOSE
 INCLUDES = \
 
 $(TARGET):$(OBJS)

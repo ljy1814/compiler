@@ -358,6 +358,7 @@ struct CRB_Object_tag {
 };
 
 #define STACK_ALLOC_SIZE (256)
+#define ARRAY_ALLOC_SIZE (256)
 #define HEAP_THRESHOLD_SIZE (1024 * 256)
 #define dkc_is_object_value(type) ( CRB_STRING_VALUE == (type) || CRB_ARRAY_VALUE == (type) )
 
@@ -387,6 +388,9 @@ void CRB_add_global_variable(CRB_Interpreter *inter, char *identifier, CRB_Value
 Expression* crb_create_index_expression(Expression *array, Expression *index);
 Expression* crb_create_method_call_expression(Expression *expression, char *method_name, ArgumentList *argument);
 Expression* crb_create_incdec_expression(Expression *operand, ExpressionType inc_or_dec);
+
+void crb_array_resize(CRB_Interpreter *inter, CRB_Object *obj, int new_size);
+void crb_array_add(CRB_Interpreter *inter, CRB_Object *obj, CRB_Value v);
 
 /* v2 local env */
 struct CRB_LocalEnvironment_tag {

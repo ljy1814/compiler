@@ -9,6 +9,8 @@
 #include "DBG.h"
 #include "crowbar.h"
 
+static void eval_expression(CRB_Interpreter *inter, CRB_LocalEnvironment *env, Expression *expr);
+
 static void eval_boolean_expression(CRB_Interpreter *inter, CRB_Boolean boolean_value)
 {
     CRB_Value v;
@@ -18,13 +20,14 @@ static void eval_boolean_expression(CRB_Interpreter *inter, CRB_Boolean boolean_
     push_value(inter, &v);
 }
 
+
 static void eval_int_expression(CRB_Interpreter *inter, int int_value)
 {
     CRB_Value v;
     v.type = CRB_INT_VALUE;
     v.u.int_value = int_value;
 
-    fprintf(stderr, "eval_int_expression %d\n", int_value);
+    /* fprintf(stderr, "eval_int_expression %d\n", int_value); */
     push_value(inter, &v);
 }
 
@@ -41,7 +44,7 @@ static void eval_string_expression(CRB_Interpreter *inter, char *string_value)
 {
     CRB_Value v;
     v.type = CRB_STRING_VALUE;
-    fprintf(stderr, "eval_string_expression %s|\n", string_value);
+    /* fprintf(stderr, "eval_string_expression %s|\n", string_value); */
     v.u.object = crb_literal_to_crb_string(inter, string_value);
 
     push_value(inter, &v);
@@ -65,6 +68,7 @@ static Variable *search_global_variable_from_env(CRB_Interpreter *inter, CRB_Loc
         return crb_search_global_variable(inter, name);
     }
 
+    fprintf(stderr, "search_global_variable_from_env env->global_variable:%p\n", env->global_variable); 
     for (pos = env->global_variable; pos; pos = pos->next) {
         if (!strcmp(pos->variable->name, name)) {
             return pos->variable;
@@ -80,7 +84,7 @@ static void eval_identifier_expression(CRB_Interpreter *inter, CRB_LocalEnvironm
     Variable *vp;
 
     vp = crb_search_local_variable(env, expr->u.identifier);
-    fprintf(stderr, "eval_identifier_expression crb_search_local_variable vup:%p\n", vp);
+    fprintf(stderr, "eval_identifier_expression crb_search_local_variable vup:%p line:%d identifier:%s\n", vp, expr->line_number, expr->u.identifier);
     if (vp != NULL) {
         v = vp->value;
         push_value(inter, &v);
@@ -88,7 +92,7 @@ static void eval_identifier_expression(CRB_Interpreter *inter, CRB_LocalEnvironm
     }
 
     vp = search_global_variable_from_env(inter, env, expr->u.identifier);
-    fprintf(stderr, "eval_identifier_expression search_global_variable_from_env vup:%p\n", vp);
+    fprintf(stderr, "eval_identifier_expression search_global_variable_from_env vup:%p env:%p\n", vp, env);
     if (vp != NULL) {
         v = vp->value;
     } else {
@@ -105,11 +109,14 @@ static CRB_Value* get_identifier_value(CRB_Interpreter *inter, CRB_LocalEnvironm
 {
     Variable *new_var;
     Variable *left;
+    fprintf(stderr, "@@@@get_identifier_value --> %s\n", identifier);
 
     left = crb_search_local_variable(env, identifier);
+    fprintf(stderr, "@@@@get_identifier_value --> %s crb_search_local_variable:%p env:%p\n", identifier, left, env);
     if (NULL == left) {
         left = search_global_variable_from_env(inter, env, identifier);
     }
+    fprintf(stderr, "@@@@get_identifier_value --> %s search_global_variable_from_env:%p env:%p\n", identifier, left, env);
 
     if (left != NULL) {
         return &left->value;
@@ -140,7 +147,7 @@ CRB_Value* get_array_element_lvalue(CRB_Interpreter *inter, CRB_LocalEnvironment
         crb_runtime_error(expr->line_number, INDEX_OPERAND_NOT_ARRAY_ERR, MESSAGE_ARGUMENT_END);
     }
 
-    if (array.type != CRB_INT_VALUE) {
+    if (index.type != CRB_INT_VALUE) {
         crb_runtime_error(expr->line_number, INDEX_OPERAND_NOT_INT_ERR, MESSAGE_ARGUMENT_END);
     }
 
@@ -442,6 +449,7 @@ void eval_binary_expression(CRB_Interpreter *inter, CRB_LocalEnvironment *env, E
 
     } else {
         char *op_str = crb_get_operator_string(operator);
+        fprintf(stderr, "eval_binary_expression runtime error left:%d right:%d\n", left_val->type, right_val->type);
         crb_runtime_error(left->line_number, BAD_OPERATOR_FOR_STRING_ERR, STRING_MESSAGE_ARGUMENT, "operator", op_str, MESSAGE_ARGUMENT_END);
     }
 
@@ -648,9 +656,116 @@ static void eval_function_call_expression(CRB_Interpreter *inter, CRB_LocalEnvir
     dispose_local_environment(inter);
 }
 
+static void eval_array_expression(CRB_Interpreter *inter, CRB_LocalEnvironment *env, ExpressionList *list)
+{
+    CRB_Value v;
+    CRB_Value t;
+    int size;
+    ExpressionList *pos;
+    int i;
+
+    size = 0;
+    for (pos = list; pos; pos = pos->next) {
+        size++;
+    }
+    fprintf(stderr, "eval_array_expression size:%d\n", size);
+
+    v.type = CRB_ARRAY_VALUE;
+    v.u.object = crb_create_array_i(inter, size);
+    fprintf(stderr, "eval_array_expression size:%d create array ok\n", size);
+    push_value(inter, &v);
+    fprintf(stderr, "eval_array_expression ^^^^^^ push size:%d push ok\n", size);
+
+    for (pos = list, i = 0; pos; pos = pos->next, ++i) {
+        eval_expression(inter, env, pos->expression);
+        t = pop_value(inter);
+        fprintf(stderr, "eval_array_expression $$$$$ pop t:%p size:%d push ok %p\n", &t, size, v.u.object->u.array.array);
+        v.u.object->u.array.array[i] = t;
+    }
+}
+
+static void check_method_argument_count(int line_number, ArgumentList *arg_list, int arg_count) {
+    ArgumentList *arg_p;
+    int count = 0;
+
+    for (arg_p = arg_list; arg_p; arg_p = arg_p->next) {
+        ++count;
+    }
+
+    if (count < arg_count) {
+        crb_runtime_error(line_number, ARGUMENT_TOO_FEW_ERR, MESSAGE_ARGUMENT_END);
+    } else if (count > arg_count) {
+        crb_runtime_error(line_number, ARGUMENT_TOO_MANY_ERR, MESSAGE_ARGUMENT_END);
+    }
+}
+
+static void eval_method_call_expression(CRB_Interpreter *inter, CRB_LocalEnvironment *env, Expression *expr)
+{
+    CRB_Value *left;
+    CRB_Value result;
+    CRB_Boolean error_flag = CRB_FALSE;
+
+    eval_expression(inter, env, expr->u.method_call_expression.expression);
+    left = peek_stack(inter, 0);
+
+    /* 数组操作  */
+    if (CRB_ARRAY_VALUE == left->type) {
+        if (!strcmp(expr->u.method_call_expression.identifier, "add")) {
+            CRB_Value *add;
+            check_method_argument_count(expr->line_number, expr->u.method_call_expression.argument, 1);
+            eval_expression(inter, env, expr->u.method_call_expression.argument->expression);
+            add = peek_stack(inter, 0);
+            crb_array_add(inter, left->u.object, *add);
+            pop_value(inter);
+            result.type = CRB_NULL_VALUE;
+
+        } else if (!strcmp(expr->u.method_call_expression.identifier, "size")) {
+            check_method_argument_count(expr->line_number, expr->u.method_call_expression.argument, 0);
+            result.type = CRB_INT_VALUE;
+            result.u.int_value = left->u.object->u.array.size;
+
+        } else if (!strcmp(expr->u.method_call_expression.identifier, "resize")) {
+            CRB_Value new_size;
+            check_method_argument_count(expr->line_number, expr->u.method_call_expression.argument, 1);
+            eval_expression(inter, env, expr->u.method_call_expression.argument->expression);
+            new_size = pop_value(inter);
+            if (new_size.type != CRB_INT_VALUE) {
+                crb_runtime_error(expr->line_number, ARRAY_RESIZE_ARGUMENT_ERR, MESSAGE_ARGUMENT_END);
+            }
+
+            crb_array_resize(inter, left->u.object, new_size.u.int_value);
+            result.type = CRB_NULL_VALUE;
+        } else {
+            error_flag = CRB_TRUE;
+        }
+    } else if (CRB_STRING_VALUE == left->type) {
+        if (!strcmp(expr->u.method_call_expression.identifier, "length")) {
+            check_method_argument_count(expr->line_number, expr->u.method_call_expression.argument, 0);
+            result.type = CRB_INT_VALUE;
+            result.u.int_value = strlen(left->u.object->u.string.string);
+        } else {
+            error_flag = CRB_TRUE;
+        }
+    }
+
+    if (error_flag) {
+        crb_runtime_error(expr->line_number, NO_SUCH_METHOD_ERR, STRING_MESSAGE_ARGUMENT, "method_name", expr->u.method_call_expression.identifier, MESSAGE_ARGUMENT_END);
+    }
+
+    pop_value(inter);
+    push_value(inter, &result);
+}
+
+static void eval_index_expression(CRB_Interpreter *inter, CRB_LocalEnvironment *env, Expression *expr)
+{
+    CRB_Value *left;
+    left = get_array_element_lvalue(inter, env, expr);
+    push_value(inter, left);
+}
+
 static void eval_expression(CRB_Interpreter *inter, CRB_LocalEnvironment *env, Expression *expr)
 {
-    fprintf(stderr, "eval_expression:%d\n", expr->type);
+    fprintf(stderr, "eval_expression:%s ++++ line:%d\n", getEvalType(expr->type), expr->line_number);
     switch (expr->type) {
         case BOOLEAN_EXPRESSION:
             eval_boolean_expression(inter, expr->u.boolean_value);
@@ -662,15 +777,15 @@ static void eval_expression(CRB_Interpreter *inter, CRB_LocalEnvironment *env, E
             eval_double_expression(inter, expr->u.double_value);
             break;
         case STRING_EXPRESSION:
-            fprintf(stderr, "eval_expression %d %s--\n", expr->line_number, expr->u.string_value);
+            /* fprintf(stderr, "eval_expression %d %s--\n", expr->line_number, expr->u.string_value); */
             eval_string_expression(inter, expr->u.string_value);
             break;
         case IDENTIFIER_EXPRESSION:
-            fprintf(stderr, "eval_expression IDENTIFIER_EXPRESSION %d %s\n", expr->type, expr->u.identifier);
+            /* fprintf(stderr, "eval_expression IDENTIFIER_EXPRESSION %d %s\n", expr->type, expr->u.identifier); */
             eval_identifier_expression(inter, env, expr);
             break;
         case ASSIGN_EXPRESSION:
-            fprintf(stderr, "eval_expression left:%d op:%d\n", expr->u.assign_expression.left->type , expr->u.assign_expression.operand->type);
+            /* fprintf(stderr, "eval_expression left:%d op:%d\n", expr->u.assign_expression.left->type , expr->u.assign_expression.operand->type); */
             eval_assign_expression(inter, env,
                     expr->u.assign_expression.left,
                     expr->u.assign_expression.operand);
@@ -695,18 +810,36 @@ static void eval_expression(CRB_Interpreter *inter, CRB_LocalEnvironment *env, E
             break;
 
         case MINUS_EXPRESSION:
+            /* fprintf(stderr, "eval_expression:%d MINUS_EXPRESSION ++++ line:%d\n", expr->type, expr->line_number); */
             crb_eval_minus_expression(inter, env, expr->u.minus_expression);
             break;
         case FUNCTION_CALL_EXPRESSION:
+            /* fprintf(stderr, "eval_expression:%d FUNCTION_CALL_EXPRESSION ++++ line:%d\n", expr->type, expr->line_number); */
             eval_function_call_expression(inter, env, expr);
             break;
         case NULL_EXPRESSION:
             eval_null_expression(inter);
             break;
+            /* v2 */
+        case METHOD_CALL_EXPRESSION:
+            /* fprintf(stderr, "eval_expression:%d METHOD_CALL_EXPRESSION ++++ line:%d\n", expr->type, expr->line_number); */
+            eval_method_call_expression(inter, env, expr);
+            break;
+        case ARRAY_EXPRESSION:
+            /* fprintf(stderr, "eval_expression:%d ARRAY_EXPRESSION ++++ line:%d\n", expr->type, expr->line_number); */
+            eval_array_expression(inter, env, expr->u.array_literal);
+            break;
+        case INDEX_EXPRESSION:
+            /* fprintf(stderr, "eval_expression INDEX_EXPRESSION:%d !!!!!!! line:%d\n", expr->type, expr->line_number); */
+            eval_index_expression(inter, env, expr);
+            break;
+        case INCREMENT_EXPRESSION:
+        case DECREMENT_EXPRESSION:
         case EXPRESSION_TYPE_COUNT_PLUS_1:
         default:
             DBG_panic(("bad case. type:%d\n", expr->type));
     }
+    fprintf(stderr, "eval_expression:%s ------------------ line:%d value:%s\n", getEvalType(expr->type), expr->line_number, CRB_value_to_string(peek_stack(inter, 0)));
 }
 
 
@@ -714,7 +847,7 @@ CRB_Value crb_eval_expression(CRB_Interpreter *inter, CRB_LocalEnvironment *env,
 {
     eval_expression(inter, env, expr);
 
-    fprintf(stderr, "crb_eval_expression -- expr:%d\n", expr->type);
+    /* fprintf(stderr, "crb_eval_expression -- expr:%d\n", expr->type); */
     return pop_value(inter);
 }
 

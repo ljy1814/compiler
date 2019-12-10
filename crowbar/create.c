@@ -21,6 +21,7 @@ Expression* crb_create_index_expression(Expression *array, Expression *index)
 Expression* crb_create_method_call_expression(Expression *expression, char *method_name, ArgumentList *argument)
 {
     Expression* exp;
+    /* fprintf(stderr, "crb_create_method_call_expression method_name:%s\n", method_name); */
 
     exp = crb_alloc_expression(METHOD_CALL_EXPRESSION);
     exp->u.method_call_expression.expression = expression;
@@ -142,6 +143,7 @@ ArgumentList *crb_chain_argument_list(ArgumentList *al, Expression *expr)
 StatementList* crb_create_statement_list(Statement *statement)
 {
     StatementList *sl;
+    /* fprintf(stderr, "crb_create_statement_list -- %d\n", statement->line_number); */
     sl = crb_malloc(sizeof(StatementList));
     sl->statement = statement;
     sl->next = NULL;
@@ -152,6 +154,7 @@ StatementList* crb_create_statement_list(Statement *statement)
 StatementList* crb_chain_statement_list(StatementList *list, Statement *statement)
 {
     StatementList *pos;
+    /* fprintf(stderr, "crb_chain_statement_list ===\n"); */
     if(NULL == list) {
         return crb_create_statement_list(statement);
     }
@@ -243,6 +246,7 @@ Expression* crb_create_identifier_expression(char *identifier)
     Expression *expr;
     expr = crb_alloc_expression(IDENTIFIER_EXPRESSION);
     expr->u.identifier = identifier;
+    /* fprintf(stderr, "crb_create_identifier_expression identifier:%s %d\n", identifier, expr->line_number); */
 
     return expr;
 }
@@ -250,6 +254,7 @@ Expression* crb_create_identifier_expression(char *identifier)
 Expression* crb_create_function_call_expression(char *func_name, ArgumentList *argument)
 {
     Expression *expr;
+    /* fprintf(stderr, "crb_create_function_call_expression func_name:%s\n", func_name); */
     expr= crb_alloc_expression(FUNCTION_CALL_EXPRESSION);
     expr->u.function_call_expression.identifier = func_name;
     expr->u.function_call_expression.argument = argument;
@@ -287,6 +292,7 @@ Statement* crb_create_global_statement(IdentifierList *identifier_list)
 {
     Statement *st;
 
+    /* fprintf(stderr, "crb_create_global_statement identifier:%s\n", identifier_list->name); */
     st = alloc_statement(GLOBAL_STATEMENT);
     st->u.global_s.identifier_list = identifier_list;
     return st;
@@ -295,6 +301,7 @@ Statement* crb_create_global_statement(IdentifierList *identifier_list)
 IdentifierList* crb_create_global_identifier(char *identifier)
 {
     IdentifierList *list;
+    /* fprintf(stderr, "crb_create_global_identifier ~~~~~~ identifier:%s\n", identifier); */
     list = crb_malloc(sizeof(IdentifierList));
     list->name = identifier;
     list->next = NULL;
@@ -366,7 +373,7 @@ Statement* crb_create_for_statement(Expression *init, Expression *cond, Expressi
     Statement *st;
 
     st = alloc_statement(FOR_STATEMENT);
-    fprintf(stderr, "|||| eval_expression left:%d op:%d\n", init->u.assign_expression.left->type , init->u.assign_expression.operand->type);
+    /* fprintf(stderr, "|||| eval_expression left:%d op:%d\n", init->u.assign_expression.left->type , init->u.assign_expression.operand->type); */
     st->u.for_s.init = init;
     st->u.for_s.condition = cond;
     st->u.for_s.post = post;
