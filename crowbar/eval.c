@@ -68,7 +68,7 @@ static Variable *search_global_variable_from_env(CRB_Interpreter *inter, CRB_Loc
         return crb_search_global_variable(inter, name);
     }
 
-    fprintf(stderr, "search_global_variable_from_env env->global_variable:%p\n", env->global_variable); 
+    /* fprintf(stderr, "search_global_variable_from_env env->global_variable:%p\n", env->global_variable);  */
     for (pos = env->global_variable; pos; pos = pos->next) {
         if (!strcmp(pos->variable->name, name)) {
             return pos->variable;
@@ -84,7 +84,7 @@ static void eval_identifier_expression(CRB_Interpreter *inter, CRB_LocalEnvironm
     Variable *vp;
 
     vp = crb_search_local_variable(env, expr->u.identifier);
-    fprintf(stderr, "eval_identifier_expression crb_search_local_variable vup:%p line:%d identifier:%s\n", vp, expr->line_number, expr->u.identifier);
+    /* fprintf(stderr, "eval_identifier_expression crb_search_local_variable vup:%p line:%d identifier:%s\n", vp, expr->line_number, expr->u.identifier); */
     if (vp != NULL) {
         v = vp->value;
         push_value(inter, &v);
@@ -92,11 +92,11 @@ static void eval_identifier_expression(CRB_Interpreter *inter, CRB_LocalEnvironm
     }
 
     vp = search_global_variable_from_env(inter, env, expr->u.identifier);
-    fprintf(stderr, "eval_identifier_expression search_global_variable_from_env vup:%p env:%p\n", vp, env);
+    /* fprintf(stderr, "eval_identifier_expression search_global_variable_from_env vup:%p env:%p\n", vp, env); */
     if (vp != NULL) {
         v = vp->value;
     } else {
-        fprintf(stderr, "eval_identifier_expression search_global_variable_from_env else vp:%p\n", vp);
+        /* fprintf(stderr, "eval_identifier_expression search_global_variable_from_env else vp:%p\n", vp); */
         crb_runtime_error(expr->line_number, VARIABLE_NOT_FOUND_ERR, STRING_MESSAGE_ARGUMENT, "token", expr->u.identifier, MESSAGE_ARGUMENT_END);
     }
 
@@ -109,14 +109,14 @@ static CRB_Value* get_identifier_value(CRB_Interpreter *inter, CRB_LocalEnvironm
 {
     Variable *new_var;
     Variable *left;
-    fprintf(stderr, "@@@@get_identifier_value --> %s\n", identifier);
+    /* fprintf(stderr, "@@@@get_identifier_value --> %s\n", identifier); */
 
     left = crb_search_local_variable(env, identifier);
-    fprintf(stderr, "@@@@get_identifier_value --> %s crb_search_local_variable:%p env:%p\n", identifier, left, env);
+    /* fprintf(stderr, "@@@@get_identifier_value --> %s crb_search_local_variable:%p env:%p\n", identifier, left, env); */
     if (NULL == left) {
         left = search_global_variable_from_env(inter, env, identifier);
     }
-    fprintf(stderr, "@@@@get_identifier_value --> %s search_global_variable_from_env:%p env:%p\n", identifier, left, env);
+    /* fprintf(stderr, "@@@@get_identifier_value --> %s search_global_variable_from_env:%p env:%p\n", identifier, left, env); */
 
     if (left != NULL) {
         return &left->value;
@@ -163,7 +163,7 @@ CRB_Value* get_array_element_lvalue(CRB_Interpreter *inter, CRB_LocalEnvironment
 CRB_Value* get_lvalue(CRB_Interpreter *inter, CRB_LocalEnvironment *env, Expression *expr)
 {
     CRB_Value *dest;
-    fprintf(stderr, "get_lvalue start %d...\n", expr->type);
+    /* fprintf(stderr, "get_lvalue start %d...\n", expr->type); */
     if (IDENTIFIER_EXPRESSION == expr->type) {
         dest = get_identifier_value(inter, env, expr->u.identifier);
     } else if (INDEX_EXPRESSION == expr->type) {
@@ -180,13 +180,13 @@ static void eval_assign_expression(CRB_Interpreter *inter, CRB_LocalEnvironment 
     CRB_Value *src;
     CRB_Value *dest;
 
-    fprintf(stderr, "eval_assign_expression left:%d... expr:%d\n", left->type, expr->type);
+    /* fprintf(stderr, "eval_assign_expression left:%d... expr:%d\n", left->type, expr->type); */
     eval_expression(inter, env, expr);
     src = peek_stack(inter, 0);
-    fprintf(stderr, "eval_assign_expression peek_stack ok\n");
+    /* fprintf(stderr, "eval_assign_expression peek_stack ok\n"); */
 
     dest = get_lvalue(inter, env, left);
-    fprintf(stderr, "eval_assign_expression get_lvalue ok\n");
+    /* fprintf(stderr, "eval_assign_expression get_lvalue ok\n"); */
     *dest = *src;
 }
 
@@ -449,13 +449,13 @@ void eval_binary_expression(CRB_Interpreter *inter, CRB_LocalEnvironment *env, E
 
     } else {
         char *op_str = crb_get_operator_string(operator);
-        fprintf(stderr, "eval_binary_expression runtime error left:%d right:%d\n", left_val->type, right_val->type);
+        /* fprintf(stderr, "eval_binary_expression runtime error left:%d right:%d\n", left_val->type, right_val->type); */
         crb_runtime_error(left->line_number, BAD_OPERATOR_FOR_STRING_ERR, STRING_MESSAGE_ARGUMENT, "operator", op_str, MESSAGE_ARGUMENT_END);
     }
 
     pop_value(inter);
     pop_value(inter);
-    fprintf(stderr, "eval_binary_expression result:%d\n", result.type);
+    /* fprintf(stderr, "eval_binary_expression result:%d\n", result.type); */
     push_value(inter, &result);
 }
 
@@ -525,12 +525,17 @@ CRB_Value crb_eval_minus_expression(CRB_Interpreter *inter, CRB_LocalEnvironment
     push_value(inter, &result);
 }
 
-static CRB_LocalEnvironment* alloc_local_environment()
+static CRB_LocalEnvironment* alloc_local_environment(CRB_Interpreter *inter)
 {
     CRB_LocalEnvironment *ret;
-    ret = MEM_malloc(sizeof(LocalEnvironment));
+
+    ret = MEM_malloc(sizeof(CRB_LocalEnvironment));
     ret->variable = NULL;
     ret->global_variable = NULL;
+    ret->ref_in_native_method = NULL;
+
+    ret->next = inter->top_environment;
+    inter->top_environment = ret;
 
     return ret;
 }
@@ -646,7 +651,7 @@ static void eval_function_call_expression(CRB_Interpreter *inter, CRB_LocalEnvir
         call_crowbar_function(inter, local_env, env, expr, func);
         break;
     case NATIVE_FUNCTION_DEFINITION:
-        call_native_function(inter, env, local_env, expr, func->u.native_f.proc);
+        call_native_function(inter, local_env, env, expr, func->u.native_f.proc);
         break;
     case FUNCTION_DEFINITION_TYPE_COUNT_PLUS_1:
     default:
@@ -668,18 +673,18 @@ static void eval_array_expression(CRB_Interpreter *inter, CRB_LocalEnvironment *
     for (pos = list; pos; pos = pos->next) {
         size++;
     }
-    fprintf(stderr, "eval_array_expression size:%d\n", size);
+    /* fprintf(stderr, "eval_array_expression size:%d\n", size); */
 
     v.type = CRB_ARRAY_VALUE;
     v.u.object = crb_create_array_i(inter, size);
-    fprintf(stderr, "eval_array_expression size:%d create array ok\n", size);
+    /* fprintf(stderr, "eval_array_expression size:%d create array ok\n", size); */
     push_value(inter, &v);
-    fprintf(stderr, "eval_array_expression ^^^^^^ push size:%d push ok\n", size);
+    /* fprintf(stderr, "eval_array_expression ^^^^^^ push size:%d push ok\n", size); */
 
     for (pos = list, i = 0; pos; pos = pos->next, ++i) {
         eval_expression(inter, env, pos->expression);
         t = pop_value(inter);
-        fprintf(stderr, "eval_array_expression $$$$$ pop t:%p size:%d push ok %p\n", &t, size, v.u.object->u.array.array);
+        /* fprintf(stderr, "eval_array_expression $$$$$ pop t:%p size:%d push ok %p\n", &t, size, v.u.object->u.array.array); */
         v.u.object->u.array.array[i] = t;
     }
 }
@@ -765,7 +770,7 @@ static void eval_index_expression(CRB_Interpreter *inter, CRB_LocalEnvironment *
 
 static void eval_expression(CRB_Interpreter *inter, CRB_LocalEnvironment *env, Expression *expr)
 {
-    fprintf(stderr, "eval_expression:%s ++++ line:%d\n", getEvalType(expr->type), expr->line_number);
+    /* fprintf(stderr, "eval_expression:%s ++++ line:%d\n", getEvalType(expr->type), expr->line_number); */
     switch (expr->type) {
         case BOOLEAN_EXPRESSION:
             eval_boolean_expression(inter, expr->u.boolean_value);
@@ -839,7 +844,7 @@ static void eval_expression(CRB_Interpreter *inter, CRB_LocalEnvironment *env, E
         default:
             DBG_panic(("bad case. type:%d\n", expr->type));
     }
-    fprintf(stderr, "eval_expression:%s ------------------ line:%d value:%s\n", getEvalType(expr->type), expr->line_number, CRB_value_to_string(peek_stack(inter, 0)));
+    /* fprintf(stderr, "eval_expression:%s ------------------ line:%d value:%s\n", getEvalType(expr->type), expr->line_number, CRB_value_to_string(peek_stack(inter, 0))); */
 }
 
 

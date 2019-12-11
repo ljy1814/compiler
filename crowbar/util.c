@@ -26,9 +26,9 @@ Variable* crb_search_global_variable(CRB_Interpreter *inter, char *identifier)
 {
     Variable *pos;
 
-    fprintf(stderr, "crb_search_global_variable identifier:%s variable:%p\n", identifier, inter->variable);
+    /* fprintf(stderr, "crb_search_global_variable identifier:%s variable:%p\n", identifier, inter->variable); */
     for (pos = inter->variable; pos; pos = pos->next) {
-        fprintf(stderr, "crb_search_global_variable identifier:%s pos:%p\n", identifier, pos);
+        /* fprintf(stderr, "crb_search_global_variable identifier:%s pos:%p\n", identifier, pos); */
         if (!strcmp(pos->name, identifier)) {
             return pos;
         }
@@ -40,7 +40,7 @@ Variable* crb_search_global_variable(CRB_Interpreter *inter, char *identifier)
 Variable* crb_search_local_variable(CRB_LocalEnvironment *env, char *identifier)
 {
     Variable *pos;
-    fprintf(stderr, "crb_search_local_variable env:%p identifier:%s\n", env, identifier);
+    /* fprintf(stderr, "crb_search_local_variable env:%p identifier:%s\n", env, identifier); */
     if (NULL == env) {
         return NULL;
     }
@@ -155,7 +155,7 @@ Variable* crb_add_global_variable(CRB_Interpreter *inter, char *identifier)
 {
     Variable *new_variable;
 
-    fprintf(stderr, "crb_add_global_variable identifier:%s\n", identifier);
+    /* fprintf(stderr, "crb_add_global_variable identifier:%s\n", identifier); */
     new_variable = crb_execute_malloc(inter, sizeof(Variable));
     new_variable->name = crb_execute_malloc(inter, strlen(identifier) + 1);
     strcpy(new_variable->name, identifier);
@@ -223,7 +223,7 @@ char* CRB_value_to_string(CRB_Value *value)
 
     crb_vstr_clear(&vstr);
 
-    fprintf(stderr, "CRB_value_to_string value:%d %p\n", value->type, value);
+    /* fprintf(stderr, "CRB_value_to_string value:%d %p\n", value->type, value); */
     switch (value->type) {
         case CRB_BOOLEAN_VALUE:
             if (value->u.boolean_value) {
@@ -253,19 +253,19 @@ char* CRB_value_to_string(CRB_Value *value)
             crb_vstr_append_string(&vstr, "null");
             break;
         case CRB_ARRAY_VALUE:
-            fprintf(stderr, "ARRAY value-- CRB_ARRAY_VALUE:%d object:%p\n", value->type, value->u.object);
+            /* fprintf(stderr, "ARRAY value-- CRB_ARRAY_VALUE:%d object:%p\n", value->type, value->u.object); */
             crb_vstr_append_string(&vstr, "(");
-            fprintf(stderr, "ARRAY value----object:%p\n", value->u.object);
-            fprintf(stderr, "ARRAY value----object:%p array_size:%d\n", value->u.object, value->u.object->u.array.size);
+            /* fprintf(stderr, "ARRAY value----object:%p\n", value->u.object); */
+            /* fprintf(stderr, "ARRAY value----object:%p array_size:%d\n", value->u.object, value->u.object->u.array.size); */
             for (i = 0; i < value->u.object->u.array.size; ++i) {
                 char *new_str;
                 if (i > 0) {
                     crb_vstr_append_string(&vstr, ", ");
                 }
-                fprintf(stderr, "ARRAY value----object:%p array_size:%d before new_str:%s\n", value->u.object, value->u.object->u.array.size, "==");
-                fprintf(stderr, "-----split-----type:%d array[%d]:%p\n", value->type, i, value->u.object->u.array.array[i]);
+                /* fprintf(stderr, "ARRAY value----object:%p array_size:%d before new_str:%s\n", value->u.object, value->u.object->u.array.size, "=="); */
+                /* fprintf(stderr, "-----split-----type:%d array[%d]:%p\n", value->type, i, value->u.object->u.array.array[i]); */
                 new_str = CRB_value_to_string(&value->u.object->u.array.array[i]);
-                fprintf(stderr, "ARRAY value----object:%p array_size:%d new_str:%p\n", value->u.object, value->u.object->u.array.size, new_str);
+                /* fprintf(stderr, "ARRAY value----object:%p array_size:%d new_str:%p\n", value->u.object, value->u.object->u.array.size, new_str); */
                 crb_vstr_append_string(&vstr, new_str);
                 MEM_free(new_str);
             }

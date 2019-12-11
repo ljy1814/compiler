@@ -151,15 +151,15 @@ static StatementResult execute_for_statement(CRB_Interpreter *inter, CRB_LocalEn
     result.type = NORMAL_STATEMENT_RESULT;
 
     if (statement->u.for_s.init) {
-        fprintf(stderr, "execute_for_statement before init\n");
+        /* fprintf(stderr, "execute_for_statement before init\n"); */
         crb_eval_expression(inter, env, statement->u.for_s.init);
     }
 
     for (;;) {
         if (statement->u.for_s.condition) {
-            fprintf(stderr, "execute_for_statement before cond\n");
+            /* fprintf(stderr, "execute_for_statement before cond\n"); */
             cond = crb_eval_expression(inter, env, statement->u.for_s.condition);
-            fprintf(stderr, "execute_for_statement after cond:%d for:%d\n", cond.type, statement->u.for_s.condition->type);
+            /* fprintf(stderr, "execute_for_statement after cond:%d for:%d\n", cond.type, statement->u.for_s.condition->type); */
             if (cond.type != CRB_BOOLEAN_VALUE) {
                 crb_runtime_error(statement->u.for_s.condition->line_number, NOT_BOOLEAN_TYPE_ERR, MESSAGE_ARGUMENT_END);
             }
@@ -170,7 +170,7 @@ static StatementResult execute_for_statement(CRB_Interpreter *inter, CRB_LocalEn
             }
         }
 
-        fprintf(stderr, "execute_for_statement crb_execute_statement_list ||");
+        /* fprintf(stderr, "execute_for_statement crb_execute_statement_list ||"); */
         result = crb_execute_statement_list(inter, env, statement->u.for_s.block->statement_list);
         if (RETURN_STATEMENT_RESULT == result.type) {
             break;
@@ -219,7 +219,7 @@ static StatementResult execute_statement(CRB_Interpreter *inter, CRB_LocalEnviro
 {
     StatementResult result;
     result.type = NORMAL_STATEMENT_RESULT;
-    fprintf(stderr, "statement : %d\n", statement->type);
+    /* fprintf(stderr, "statement : %d\n", statement->type); */
 
     switch (statement->type){
     case EXPRESSION_STATEMENT:
@@ -260,10 +260,10 @@ StatementResult crb_execute_statement_list(CRB_Interpreter *inter, CRB_LocalEnvi
     StatementResult result;
 
     result.type = NORMAL_STATEMENT_RESULT;
-    fprintf(stderr, "crb_execute_statement_list ....\n");
+    /* fprintf(stderr, "crb_execute_statement_list ....\n"); */
 
     for (pos = list; pos; pos = pos->next) {
-        fprintf(stderr, "pos line:%d\n", pos->statement->line_number);
+        /* fprintf(stderr, "pos line:%d\n", pos->statement->line_number); */
         result = execute_statement(inter, env, pos->statement);
         if (result.type != NORMAL_STATEMENT_RESULT) {
             goto FUNC_END;

@@ -69,7 +69,7 @@ static void create_message_argument(MessageArgument *arg, va_list ap)
     while((type = va_arg(ap, MessageArgumentType)) != MESSAGE_ARGUMENT_END) {
         arg[index].type = type;
         arg[index].name = va_arg(ap, char *);
-        fprintf(stderr, "create_message_argument type:%d %s\n", arg[index].type, arg[index].name);
+        /* fprintf(stderr, "create_message_argument type:%d %s\n", arg[index].type, arg[index].name); */
 
         switch (type) {
             case INT_MESSAGE_ARGUMENT:
@@ -93,18 +93,18 @@ static void create_message_argument(MessageArgument *arg, va_list ap)
             default:
                 assert(0);
         }
-        fprintf(stderr, "create_message_argument type:%d %s id:%s\n", arg[index].type, arg[index].name, arg[index].u.string_val);
+        /* fprintf(stderr, "create_message_argument type:%d %s id:%s\n", arg[index].type, arg[index].name, arg[index].u.string_val); */
         index++;
         assert(index < MESSAGE_ARGUMENT_MAX);
     }
-    fprintf(stderr, "create_message_argument index:%d\n", index);
+    /* fprintf(stderr, "create_message_argument index:%d\n", index); */
 }
 
 static void search_argument(MessageArgument *arg_list, char *arg_name, MessageArgument *arg)
 {
     int i;
     for (i = 0; arg_list[i].type != MESSAGE_ARGUMENT_END; i++) {
-        fprintf(stderr, "search_argument %s %d %s arg_name:%s\n", arg_name, arg_list[i].type, arg_list[i].name, arg_name);
+        /* fprintf(stderr, "search_argument %s %d %s arg_name:%s\n", arg_name, arg_list[i].type, arg_list[i].name, arg_name); */
         if (!strcmp(arg_list[i].name, arg_name)) {
             *arg = arg_list[i];
             return;
@@ -122,7 +122,7 @@ static void format_message(MessageFormat *format, VString *v, va_list ap)
     MessageArgument arg[MESSAGE_ARGUMENT_MAX];
     MessageArgument cur_arg;
 
-    fprintf(stderr, "format_message %s\n", format->format);
+    /* fprintf(stderr, "format_message %s\n", format->format); */
     create_message_argument(arg, ap);
     for (i = 0; format->format[i] != '\0'; ++i) {
         if (format->format[i] != '$') {
@@ -131,18 +131,18 @@ static void format_message(MessageFormat *format, VString *v, va_list ap)
         }
         assert(format->format[i+1] == '(');
         i+=2;
-        fprintf(stderr, "format_message %s\n", v->string);
+        /* fprintf(stderr, "format_message %s\n", v->string); */
 
         for (arg_name_index = 0; format->format[i] != ')'; ++arg_name_index, ++i) {
             arg_name[arg_name_index] = format->format[i];
         } 
         arg_name[arg_name_index] = '\0';
-        fprintf(stderr, "format_message arg_name %s\n", arg_name);
+        /* fprintf(stderr, "format_message arg_name %s\n", arg_name); */
         assert(format->format[i] == ')');
-        fprintf(stderr, "format_message arg_name %s arg:%p ok\n", arg_name, arg);
+        /* fprintf(stderr, "format_message arg_name %s arg:%p ok\n", arg_name, arg); */
 
         search_argument(arg, arg_name, &cur_arg);
-        fprintf(stderr, "format_message search arg_name %s ok\n", arg_name);
+        /* fprintf(stderr, "format_message search arg_name %s ok\n", arg_name); */
         switch (cur_arg.type) {
             case INT_MESSAGE_ARGUMENT:
                 sprintf(buf, "%d", cur_arg.u.int_val);
@@ -183,7 +183,7 @@ void self_check()
         DBG_panic(("compile error message format error. COMPILE_ERROR_COUNT_PLUS_1..%d\n", COMPILE_ERROR_COUNT_PLUS_1));
     }
 
-    fprintf(stderr, "------split----\n");
+    /* fprintf(stderr, "------split----\n"); */
 
     if (strcmp(crb_runtime_error_message_format[0].format, "dummy") != 0) {
         DBG_panic(("runtime error message format error.\n"));
@@ -200,13 +200,13 @@ void crb_compile_error(CompilerError id, ...)
     VString message;
     int line_number;
 
-    fprintf(stderr, "crb_compile_error.....id:%d\n", id);
+    /* fprintf(stderr, "crb_compile_error.....id:%d\n", id); */
     self_check();
     va_start(ap, id);
     line_number = crb_get_current_interpreter()->current_line_number;
     clear_v_string(&message);
     format_message(&crb_compile_error_message_format[id], &message, ap);
-    fprintf(stderr, "%3d:%s\n", line_number, message.string);
+    /* fprintf(stderr, "%3d:%s\n", line_number, message.string); */
     va_end(ap);
 
     exit(1);
@@ -217,15 +217,15 @@ void crb_runtime_error(int line_number, RuntimeError id, ...)
     va_list ap;
     VString message;
 
-    fprintf(stderr, "crb_runtime_error.....id:%d\n", id);
-    fprintf(stderr, "+++++++\n");
+    /* fprintf(stderr, "crb_runtime_error.....id:%d\n", id); */
+    /* fprintf(stderr, "+++++++\n"); */
     self_check();
-    fprintf(stderr, "=======\n");
+    /* fprintf(stderr, "=======\n"); */
     va_start(ap, id);
     clear_v_string(&message);
-    fprintf(stderr, "-------\n");
+    /* fprintf(stderr, "-------\n"); */
     format_message(&crb_runtime_error_message_format[id], &message, ap);
-    fprintf(stderr, "%3d:%s\n", line_number, message.string);
+    /* fprintf(stderr, "%3d:%s\n", line_number, message.string); */
     va_end(ap);
 
     exit(1);
