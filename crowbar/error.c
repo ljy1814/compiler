@@ -122,7 +122,7 @@ static void format_message(MessageFormat *format, VString *v, va_list ap)
     MessageArgument arg[MESSAGE_ARGUMENT_MAX];
     MessageArgument cur_arg;
 
-    /* fprintf(stderr, "format_message %s\n", format->format); */
+    /* fprintf(stderr, "format_message %s\n", format->format);  */
     create_message_argument(arg, ap);
     for (i = 0; format->format[i] != '\0'; ++i) {
         if (format->format[i] != '$') {
@@ -225,7 +225,7 @@ void crb_runtime_error(int line_number, RuntimeError id, ...)
     clear_v_string(&message);
     /* fprintf(stderr, "-------\n"); */
     format_message(&crb_runtime_error_message_format[id], &message, ap);
-    /* fprintf(stderr, "%3d:%s\n", line_number, message.string); */
+    fprintf(stderr, "%3d:%s\n", line_number, message.string); 
     va_end(ap);
 
     exit(1);

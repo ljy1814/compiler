@@ -190,6 +190,8 @@ CRB_Value new_array_sub(CRB_Interpreter *inter, CRB_LocalEnvironment *env, int a
             ret.u.object->u.array.array[i] = new_array_sub(inter, env, arg_count, args, arg_index + 1);
         }
     }
+
+    return ret;
 }
 
 CRB_Value crb_nv_new_array_proc(CRB_Interpreter *inter, CRB_LocalEnvironment *env, int arg_count, CRB_Value *args)

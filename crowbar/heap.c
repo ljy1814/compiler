@@ -8,6 +8,9 @@
 #include "DBG.h"
 #include "crowbar.h"
 
+/*
+ * mark对象,数组则mark其每个元素
+ * */
 static void gc_mark(CRB_Object *obj)
 {
     int i;
@@ -33,6 +36,15 @@ static void gc_reset_mark(CRB_Object *obj)
     obj->marked = CRB_FALSE;
 }
 
+static void gc_mark_ref_in_native_method(CRB_LocalEnvironment *env)
+{
+    RefInNativeFunc *ref;
+
+    for (ref = env->ref_in_native_method; ref; ref = ref->next) {
+        gc_mark(ref->object);
+    }
+}
+
 static void gc_mark_objects(CRB_Interpreter *inter)
 {
     CRB_Object *obj;
@@ -40,13 +52,41 @@ static void gc_mark_objects(CRB_Interpreter *inter)
     CRB_LocalEnvironment *env;
     int i;
 
+    /*
+     * 堆上对象全部取消mark
+     * */
     for (obj = inter->heap.header; obj; obj = obj->next) {
         gc_reset_mark(obj);
     }
 
+    /*
+     * 全局变量全部标记
+     * */
     for (v = inter->variable; v; v = v->next) {
         if (dkc_is_object_value(v->value.type)) {
             gc_mark(v->value.u.object);
+        }
+    }
+
+    /*
+     * 局部环境,引用的对象全部mark
+     * 内置函数引用的对象全部mark
+     * */
+    for (env = inter->top_environment; env; env = env->next) {
+        for (v = env->variable; v; v = v->next) {
+            if (dkc_is_object_value(v->value.type)) {
+                gc_mark(v->value.u.object);
+            }
+        }
+        gc_mark_ref_in_native_method(env);
+    }
+
+    /*
+     * 栈上的对象也全部标记
+     * */
+    for (i = 0; i < inter->stack.stack_pointer; ++i) {
+        if (dkc_is_object_value(inter->stack.stack[i].type)) {
+            gc_mark(inter->stack.stack[i].u.object);
         }
     }
 }
@@ -150,7 +190,7 @@ static void add_ref_in_native_method(CRB_LocalEnvironment *env, CRB_Object *obj)
     RefInNativeFunc *new_ref;
 
     new_ref = MEM_malloc(sizeof(RefInNativeFunc));
-    new_ref->obj = obj;
+    new_ref->object = obj;
     new_ref->next = env->ref_in_native_method;
     env->ref_in_native_method = new_ref;
 }

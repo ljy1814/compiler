@@ -100,7 +100,7 @@ expression: logical_or_expression
 logical_or_expression:
         logical_and_expression | logical_or_expression LOGICAL_OR logical_and_expression
         {
-            $$ = crb_create_binary_expression(LOGICAL_AND_EXPRESSION, $1, $3);
+            $$ = crb_create_binary_expression(LOGICAL_OR_EXPRESSION, $1, $3);
         }
         ;
 

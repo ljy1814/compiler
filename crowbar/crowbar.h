@@ -319,7 +319,7 @@ typedef struct {
 
 /* v2 */
 typedef struct RefInNativeFunc_tag {
-    CRB_Object *obj;
+    CRB_Object *object;
     struct RefInNativeFunc_tag *next;
 } RefInNativeFunc ;
 
@@ -329,6 +329,12 @@ typedef enum {
     OBJECT_TYPE_COUNT_PLUS_1
 } ObjectType;
 
+/*
+ * |   |
+ * |   |
+ * | header  | -> |   | -> |   |
+ * |         | <- |   | <- |   |
+ * */
 typedef struct {
     int current_heap_size;
     int current_threshold;
@@ -346,6 +352,15 @@ struct CRB_String_tag {
     char *string;
 };
 
+/*
+ * _________
+ * | type   |
+ * | marked |
+ * | array or string |
+ * | <- prev |
+ * | next -> |
+ * ----------
+ * */
 struct CRB_Object_tag {
     ObjectType type;
     unsigned int marked:1;

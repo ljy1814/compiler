@@ -495,10 +495,10 @@ static CRB_Value eval_logical_and_or_expression(CRB_Interpreter *inter, CRB_Loca
     }
 
     eval_expression(inter, env, right);
+    right_val = pop_value(inter);
     if (right_val.type != CRB_BOOLEAN_VALUE) {
         crb_runtime_error(right->line_number, NOT_BOOLEAN_TYPE_ERR, MESSAGE_ARGUMENT_END);
     }
-    right_val = pop_value(inter);
     result.u.boolean_value = right_val.u.boolean_value;
 
 FUNC_END:
@@ -768,6 +768,30 @@ static void eval_index_expression(CRB_Interpreter *inter, CRB_LocalEnvironment *
     push_value(inter, left);
 }
 
+static void eval_inc_dec_expression(CRB_Interpreter *inter, CRB_LocalEnvironment *env, Expression *expr)
+{
+    CRB_Value *operand;
+    CRB_Value result;
+    int old_value;
+
+    operand = get_lvalue(inter, env, expr->u.inc_dec.operand);
+    if (operand->type != CRB_INT_VALUE) {
+        crb_runtime_error(expr->line_number, INC_DEC_OPERAND_TYPE_ERR, MESSAGE_ARGUMENT_END);
+    }
+
+    old_value = operand->u.int_value;
+    if (INCREMENT_EXPRESSION == expr->type) {
+        operand->u.int_value++;
+    } else {
+        DBG_assert(DECREMENT_EXPRESSION == expr->type, ("expr->type:%d\n", expr->type));
+        operand->u.int_value--;
+    }
+    
+    result.type = CRB_INT_VALUE;
+    result.u.int_value = old_value;
+    push_value(inter, &result);
+}
+
 static void eval_expression(CRB_Interpreter *inter, CRB_LocalEnvironment *env, Expression *expr)
 {
     /* fprintf(stderr, "eval_expression:%s ++++ line:%d\n", getEvalType(expr->type), expr->line_number); */
@@ -840,6 +864,7 @@ static void eval_expression(CRB_Interpreter *inter, CRB_LocalEnvironment *env, E
             break;
         case INCREMENT_EXPRESSION:
         case DECREMENT_EXPRESSION:
+            eval_inc_dec_expression(inter, env, expr);
         case EXPRESSION_TYPE_COUNT_PLUS_1:
         default:
             DBG_panic(("bad case. type:%d\n", expr->type));
