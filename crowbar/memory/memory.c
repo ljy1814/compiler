@@ -22,20 +22,44 @@ MEM_Controller mem_default_controller = &st_default_controller;
 void check_mark_sub(unsigned char *mark, int size)
 {
     int i;
+    /* 
+    fprintf(stderr, "mark %p:%d {", mark, size);
+    for (i = 0; i < size; ++i) {
+        fprintf(stderr, "%x,", mark, size, (int)mark[i]);
+    }
+    fprintf(stderr, "}\n");
+    */
     for (i = 0; i < size; ++i) {
         if (mark[i] != MARK) {
-            fprintf(stderr, "bad mark\n");
+            fprintf(stderr, "bad mark %p:%d {%x,%x}\n", mark, size, mark[0], mark[1]);
             abort();
         }
     }
 }
 
+/*
+ *      | size       |
+ *      | filename   |
+ *      | line       |
+ * <-   | <- prev    | 
+ *      | next ->    | ->
+ *      | [4] mark   |    <--------
+ *      | union data |
+ *      |  data      |
+ *      | CD CD CD CD| <- tail
+ *      ~~~~~~~~~~~~~~  <--------header[1]
+ *      ~~~~~~~~~~~~~~
+ * */
+
 void check_mark(Header *header)
 {
     unsigned char *tail;
-    check_mark_sub(header->s.mark, (char *)&header[1] - (char *)header->s.mark);
     tail = ((unsigned char *)header) + header->s.size + sizeof(Header);
+    fprintf(stderr,  "Header[size:%d,filename:%s,line:%d prev:%p next:%p mark:%p {%x,%x,%x,%x} tail:%p {%x,%x,%x,%x}]\n", header->s.size, header->s.filename, header->s.line, header->s.prev, header->s.next,header->s.mark, header->s.mark[0], header->s.mark[1], header->s.mark[2], header->s.mark[3], tail, tail[0],tail[1], tail[2], tail[2]);  
+    check_mark_sub(header->s.mark, (char *)&header[1] - (char *)header->s.mark);
+    fprintf(stderr, "check_mark header\n");
     check_mark_sub(tail, MARK_SIZE);
+    fprintf(stderr, "check_mark tail\n");
 }
 
 static void rechain_block(MEM_Controller controller, Header *header)
@@ -135,6 +159,7 @@ void *MEM_malloc_func(MEM_Controller controller, char *filename, int line, size_
     size_t alloc_size;
 
 #ifdef DEBUG
+    /* header data tail */
     alloc_size = size + sizeof(Header) + MARK_SIZE;
 #else
     alloc_size = size ;
@@ -146,7 +171,7 @@ void *MEM_malloc_func(MEM_Controller controller, char *filename, int line, size_
     }
 
 #ifdef DEBUG
-    memset(ptr, 0xcc, alloc_size);
+    memset(ptr, NULL_VALUE, alloc_size);
     set_header(ptr, size, filename, line);
     set_tail(ptr, alloc_size);
     chain_block(controller, (Header*)ptr);
@@ -159,6 +184,8 @@ void *MEM_malloc_func(MEM_Controller controller, char *filename, int line, size_
 void MEM_free_func(MEM_Controller controller, void *ptr)
 {
     void *real_ptr;
+    Header *header;
+    unsigned char *tail;
 #ifdef DEBUG
     int size;
 #endif
@@ -168,10 +195,14 @@ void MEM_free_func(MEM_Controller controller, void *ptr)
 
 #ifdef DEBUG
     real_ptr = (char *)ptr - sizeof(Header);
+    tail = ((unsigned char *)header) + header->s.size + sizeof(Header);
+    fprintf(stderr, "MEM_free_func pre:%p real_ptr:%p\n", ptr, real_ptr);
+    header = (Header*) real_ptr;
+    fprintf(stderr,  "Header[size:%d,filename:%s,line:%d prev:%p next:%p mark:%p {%x,%x,%x,%x} tail:%p {%x,%x,%x,%x}]\n", header->s.size, header->s.filename, header->s.line, header->s.prev, header->s.next,header->s.mark, header->s.mark[0], header->s.mark[1], header->s.mark[2], header->s.mark[3], tail, tail[0],tail[1], tail[2], tail[2]);  
     check_mark((Header*)real_ptr);
     size = ((Header*)real_ptr)->s.size;
     unchain_block(controller, real_ptr);
-    memset(real_ptr, 0xCC, size + sizeof(Header));
+    memset(real_ptr, NULL_VALUE, size + sizeof(Header));
 #else
     real_ptr = ptr;
 #endif
@@ -185,6 +216,7 @@ void* MEM_realloc_func(MEM_Controller controller, char *fn, int line, void *ptr,
     size_t alloc_size;
     void *real_ptr;
 
+    fprintf(stderr, "MEM_realloc_func fn:%s line:%d ptr:%p size:%d\n", fn, line, ptr, size);
 #ifdef DEBUG
     Header old_header;
     int old_size;
@@ -228,7 +260,7 @@ void* MEM_realloc_func(MEM_Controller controller, char *fn, int line, void *ptr,
     }
     new_ptr = (char *)new_ptr + sizeof(Header);
     if (size > old_size) {
-        memset((char *)new_ptr + old_size, 0xCC, size - old_size);
+        memset((char *)new_ptr + old_size, NULL_VALUE, size - old_size);
     }
 #endif
 

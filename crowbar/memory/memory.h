@@ -50,6 +50,7 @@ typedef union {
 
 #define MARK (0xCD)
 #define MARK_SIZE (4)
+#define NULL_VALUE (0xCC)
 #define ALIGN_SIZE (sizeof(Align))
 #define revalue_up_align(val) ((val) ? (((val) - 1) / ALIGN_SIZE + 1) : 0 )
 #define HEADER_ALIAGN_SIZE (revalue_up_align(sizeof(HeaderStruct)))
@@ -69,5 +70,15 @@ union Header_tag {
     HeaderStruct s;
     Align u[HEADER_ALIAGN_SIZE];
 };
+
+/*
+ *      | size       |
+ *      | filename   |
+ *      | line       |
+ * <-   | <- prev    | 
+ *      | next ->    | ->
+ *      | [4] mark   |
+ *      | union      |
+ * */
 
 #endif

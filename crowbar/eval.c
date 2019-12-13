@@ -547,6 +547,7 @@ void dispose_ref_in_native_method(CRB_LocalEnvironment *env)
     while(env->ref_in_native_method) {
         ref = env->ref_in_native_method;
         env->ref_in_native_method = ref->next;
+        /* 此处崩溃 new_array */
         MEM_free(ref);
     }
 }

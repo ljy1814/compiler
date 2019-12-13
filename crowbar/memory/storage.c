@@ -58,6 +58,7 @@ void MEM_dispose_storage_func(MEM_Controller controller, MEM_Storage storage)
 {
     MemoryPage *tmp;
 
+    fprintf(stderr, "MEM_dispose_storage_func -----\n");
     while(storage->page_list) {
         tmp = storage->page_list->next;
         MEM_free_func(controller, storage->page_list);

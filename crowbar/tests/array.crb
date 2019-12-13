@@ -28,7 +28,7 @@ function dump_a99(arg99) {
 
 a2 = {};
 for (i = 0; i < 10000; i = i + 1) {
-    print("" + i + "\n");
+    #print("" + i + "\n");
     a2.add(new_array(i % 5));
     a2.add(a2);
 }
