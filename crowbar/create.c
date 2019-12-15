@@ -48,6 +48,7 @@ Expression* crb_create_array_expression(ExpressionList *list)
     expr = crb_alloc_expression(ARRAY_EXPRESSION);
     expr->u.array_literal = list;
 
+    fprintf(stderr, "crb_create_array_expression -----%p\n", expr);
     return expr;
 }
 

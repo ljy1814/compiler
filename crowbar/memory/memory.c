@@ -195,9 +195,9 @@ void MEM_free_func(MEM_Controller controller, void *ptr)
 
 #ifdef DEBUG
     real_ptr = (char *)ptr - sizeof(Header);
+    header = (Header*) real_ptr;
     tail = ((unsigned char *)header) + header->s.size + sizeof(Header);
     fprintf(stderr, "MEM_free_func pre:%p real_ptr:%p\n", ptr, real_ptr);
-    header = (Header*) real_ptr;
     fprintf(stderr,  "Header[size:%d,filename:%s,line:%d prev:%p next:%p mark:%p {%x,%x,%x,%x} tail:%p {%x,%x,%x,%x}]\n", header->s.size, header->s.filename, header->s.line, header->s.prev, header->s.next,header->s.mark, header->s.mark[0], header->s.mark[1], header->s.mark[2], header->s.mark[3], tail, tail[0],tail[1], tail[2], tail[2]);  
     check_mark((Header*)real_ptr);
     size = ((Header*)real_ptr)->s.size;

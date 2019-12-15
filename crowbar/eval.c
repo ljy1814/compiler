@@ -137,7 +137,9 @@ CRB_Value* get_array_element_lvalue(CRB_Interpreter *inter, CRB_LocalEnvironment
     CRB_Value array;
     CRB_Value index;
 
+    fprintf(stderr,"get_array_element_lvalue eval_expression(env:%p array expr:%p)\n", env, expr->u.index_expression.array);
     eval_expression(inter, env, expr->u.index_expression.array);
+    fprintf(stderr,"get_array_element_lvalue eval_expression(env:%p index expr:%p)\n", env, expr->u.index_expression.index);
     eval_expression(inter, env, expr->u.index_expression.index);
 
     index = pop_value(inter);
@@ -180,7 +182,8 @@ static void eval_assign_expression(CRB_Interpreter *inter, CRB_LocalEnvironment 
     CRB_Value *src;
     CRB_Value *dest;
 
-    /* fprintf(stderr, "eval_assign_expression left:%d... expr:%d\n", left->type, expr->type); */
+    /* fprintf(stderr, "eval_assign_expression left:%d... expr:%d\n", left->type, expr->type); */ 
+    fprintf(stderr, "eval_assign_expression eval_expression(env:%p left:%p %s expr:%p)\n", env, left, left->u.identifier, expr);
     eval_expression(inter, env, expr);
     src = peek_stack(inter, 0);
     /* fprintf(stderr, "eval_assign_expression peek_stack ok\n"); */
@@ -413,7 +416,9 @@ void eval_binary_expression(CRB_Interpreter *inter, CRB_LocalEnvironment *env, E
     CRB_Value *right_val;
     CRB_Value result;
 
+    fprintf(stderr, "eval_binary_expression eval_expression(env:%p left:%p)\n", env, left);
     eval_expression(inter, env, left);
+    fprintf(stderr, "eval_binary_expression eval_expression(env:%p right:%p)\n", env, right);
     eval_expression(inter, env, right);
     left_val = peek_stack(inter, 1);
     right_val = peek_stack(inter, 0);
@@ -584,6 +589,7 @@ static CRB_Value call_native_function(CRB_Interpreter *inter, CRB_LocalEnvironme
     CRB_Value *args;
 
     for (arg_count = 0, arg_p = expr->u.function_call_expression.argument; arg_p; arg_p = arg_p->next) {
+        fprintf(stderr, "call_native_function eval_expression(env:%p expr:%p)\n", caller_env, arg_p->expression);
         eval_expression(inter, caller_env, arg_p->expression);
         arg_count++;
     }
@@ -613,6 +619,7 @@ static void call_crowbar_function(CRB_Interpreter *inter, CRB_LocalEnvironment *
             crb_runtime_error(expr->line_number, ARGUMENT_TOO_MANY_ERR, MESSAGE_ARGUMENT_END);
         }
 
+        fprintf(stderr,"call_crowbar_function eval_expression(env:%p expr:%p)\n", caller_env, arg_p->expression);
         eval_expression(inter, caller_env, arg_p->expression);
         arg_val = pop_value(inter);
 
@@ -683,6 +690,7 @@ static void eval_array_expression(CRB_Interpreter *inter, CRB_LocalEnvironment *
     /* fprintf(stderr, "eval_array_expression ^^^^^^ push size:%d push ok\n", size); */
 
     for (pos = list, i = 0; pos; pos = pos->next, ++i) {
+        fprintf(stderr, "eval_array_expression eval_expression (env:%p,expr:%p)\n", env, pos->expression);
         eval_expression(inter, env, pos->expression);
         t = pop_value(inter);
         /* fprintf(stderr, "eval_array_expression $$$$$ pop t:%p size:%d push ok %p\n", &t, size, v.u.object->u.array.array); */
@@ -711,6 +719,7 @@ static void eval_method_call_expression(CRB_Interpreter *inter, CRB_LocalEnviron
     CRB_Value result;
     CRB_Boolean error_flag = CRB_FALSE;
 
+    fprintf(stderr , "eval_method_call_expression eval_expression(env:%p expr:%p)\n", env, expr->u.method_call_expression.expression);
     eval_expression(inter, env, expr->u.method_call_expression.expression);
     left = peek_stack(inter, 0);
 
@@ -719,6 +728,7 @@ static void eval_method_call_expression(CRB_Interpreter *inter, CRB_LocalEnviron
         if (!strcmp(expr->u.method_call_expression.identifier, "add")) {
             CRB_Value *add;
             check_method_argument_count(expr->line_number, expr->u.method_call_expression.argument, 1);
+            fprintf(stderr , "eval_method_call_expression eval_expression(env:%p expr:%p)\n", env, expr->u.method_call_expression.argument->expression);
             eval_expression(inter, env, expr->u.method_call_expression.argument->expression);
             add = peek_stack(inter, 0);
             crb_array_add(inter, left->u.object, *add);
@@ -733,6 +743,7 @@ static void eval_method_call_expression(CRB_Interpreter *inter, CRB_LocalEnviron
         } else if (!strcmp(expr->u.method_call_expression.identifier, "resize")) {
             CRB_Value new_size;
             check_method_argument_count(expr->line_number, expr->u.method_call_expression.argument, 1);
+            fprintf(stderr, "eval_method_call_expression eval_expression(env:%p, expr:%p)\n", env, expr->u.method_call_expression.argument->expression);
             eval_expression(inter, env, expr->u.method_call_expression.argument->expression);
             new_size = pop_value(inter);
             if (new_size.type != CRB_INT_VALUE) {
@@ -795,7 +806,8 @@ static void eval_inc_dec_expression(CRB_Interpreter *inter, CRB_LocalEnvironment
 
 static void eval_expression(CRB_Interpreter *inter, CRB_LocalEnvironment *env, Expression *expr)
 {
-    /* fprintf(stderr, "eval_expression:%s ++++ line:%d\n", getEvalType(expr->type), expr->line_number); */
+    /*fprintf(stderr, "eval_expression:%s ++++ line:%d expr:%p\n", getEvalType(expr->type), expr->line_number, expr);  */
+    fprintf(stderr, "eval_expression %p\n", expr);
     switch (expr->type) {
         case BOOLEAN_EXPRESSION:
             eval_boolean_expression(inter, expr->u.boolean_value);
@@ -815,7 +827,7 @@ static void eval_expression(CRB_Interpreter *inter, CRB_LocalEnvironment *env, E
             eval_identifier_expression(inter, env, expr);
             break;
         case ASSIGN_EXPRESSION:
-            /* fprintf(stderr, "eval_expression left:%d op:%d\n", expr->u.assign_expression.left->type , expr->u.assign_expression.operand->type); */
+            fprintf(stderr, "eval_expression left:%p op:%p\n", expr->u.assign_expression.left, expr->u.assign_expression.operand); 
             eval_assign_expression(inter, env,
                     expr->u.assign_expression.left,
                     expr->u.assign_expression.operand);
