@@ -57,9 +57,7 @@ void check_mark(Header *header)
     tail = ((unsigned char *)header) + header->s.size + sizeof(Header);
     fprintf(stderr,  "Header[size:%d,filename:%s,line:%d prev:%p next:%p mark:%p {%x,%x,%x,%x} tail:%p {%x,%x,%x,%x}]\n", header->s.size, header->s.filename, header->s.line, header->s.prev, header->s.next,header->s.mark, header->s.mark[0], header->s.mark[1], header->s.mark[2], header->s.mark[3], tail, tail[0],tail[1], tail[2], tail[2]);  
     check_mark_sub(header->s.mark, (char *)&header[1] - (char *)header->s.mark);
-    fprintf(stderr, "check_mark header\n");
     check_mark_sub(tail, MARK_SIZE);
-    fprintf(stderr, "check_mark tail\n");
 }
 
 static void rechain_block(MEM_Controller controller, Header *header)
@@ -287,7 +285,7 @@ char* MEM_strdup_func(MEM_Controller controller, char *fn, int line, char *str)
     }
 
 #ifdef DEBUG
-    memset(ptr, 0xCC, alloc_size);
+    memset(ptr, NULL_VALUE, alloc_size);
     set_header((Header*)ptr, size, fn, line);
     set_tail(ptr, alloc_size);
     chain_block(controller, (Header*)ptr);

@@ -64,6 +64,7 @@ void MEM_dispose_storage_func(MEM_Controller controller, MEM_Storage storage)
         MEM_free_func(controller, storage->page_list);
         storage->page_list = tmp;
     }
+    MEM_free_func(controller, storage);
 }
 
 /* vim: set tabstop=4 set shiftwidth=4 */

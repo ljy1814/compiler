@@ -123,7 +123,6 @@ typedef struct ArgumentList_tag {
 } ArgumentList;
 
 typedef struct {
-    /* char *variable; */
     Expression *left;
     Expression *operand;
 } AssignExpression;
